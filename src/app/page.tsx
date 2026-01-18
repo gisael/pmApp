@@ -1,15 +1,43 @@
 'use client';
 
+import { useState, useRef, useCallback } from 'react';
 import { KanbanBoard } from '@/components/KanbanBoard';
 import { TodoList } from '@/components/TodoList';
 import { Notes } from '@/components/Notes';
+import { ShortcutsModal } from '@/components/ShortcutsModal';
+import { SearchFilterBar } from '@/components/SearchFilterBar';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Task, TodoItem } from '@/types';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { Task, TodoItem, Priority } from '@/types';
 
 export default function Home() {
   const [tasks, setTasks] = useLocalStorage<Task[]>('vibe-pm-tasks', []);
   const [todos, setTodos] = useLocalStorage<TodoItem[]>('vibe-pm-todos', []);
   const [notes, setNotes] = useLocalStorage<string>('vibe-pm-notes', '');
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const handleNewTask = useCallback(() => {
+    setIsAddModalOpen(true);
+  }, []);
+
+  const handleFocusSearch = useCallback(() => {
+    searchInputRef.current?.focus();
+  }, []);
+
+  const handleShowHelp = useCallback(() => {
+    setIsShortcutsOpen(true);
+  }, []);
+
+  useKeyboardShortcuts({
+    onNewTask: handleNewTask,
+    onFocusSearch: handleFocusSearch,
+    onShowHelp: handleShowHelp,
+  });
 
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -51,12 +79,28 @@ export default function Home() {
         {/* Kanban Section */}
         <main className="flex-1 flex flex-col min-h-0 border-r border-[var(--border-muted)]">
           <div className="px-8 py-4 border-b border-[var(--border-muted)]">
-            <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
-              PROJECT BOARD
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
+                PROJECT BOARD
+              </h2>
+              <SearchFilterBar
+                ref={searchInputRef}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                priorityFilter={priorityFilter}
+                onPriorityFilterChange={setPriorityFilter}
+              />
+            </div>
           </div>
           <div className="flex-1 p-6 overflow-hidden">
-            <KanbanBoard tasks={tasks} onTasksChange={setTasks} />
+            <KanbanBoard
+              tasks={tasks}
+              onTasksChange={setTasks}
+              isAddModalOpen={isAddModalOpen}
+              onAddModalOpenChange={setIsAddModalOpen}
+              searchQuery={searchQuery}
+              priorityFilter={priorityFilter}
+            />
           </div>
         </main>
 
@@ -92,13 +136,21 @@ export default function Home() {
       <footer className="flex-shrink-0 border-t border-[var(--border-muted)] px-8 py-3">
         <div className="flex items-center justify-between">
           <span className="font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
-            DRAG TO MOVE • CLICK TO EDIT • ESC TO CANCEL
+            <span className="text-[var(--text-secondary)]">N</span> NEW TASK •
+            <span className="text-[var(--text-secondary)]"> /</span> SEARCH •
+            <span className="text-[var(--text-secondary)]"> ?</span> SHORTCUTS
           </span>
           <span className="font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
             LOCAL STORAGE ENABLED
           </span>
         </div>
       </footer>
+
+      {/* Shortcuts Modal */}
+      <ShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Task, TaskStatus } from '@/types';
+import { Task, TaskStatus, Priority } from '@/types';
 import { KanbanCard } from './KanbanCard';
 
 interface KanbanColumnProps {
@@ -10,8 +10,10 @@ interface KanbanColumnProps {
   title: string;
   tasks: Task[];
   onDeleteTask: (id: string) => void;
-  onEditTask: (id: string, title: string, description?: string) => void;
+  onEditTask: (id: string, title: string, description?: string, priority?: Priority, dueDate?: string) => void;
   onAddTask?: () => void;
+  isSortedByPriority: boolean;
+  onToggleSort: () => void;
 }
 
 const statusConfig = {
@@ -20,7 +22,16 @@ const statusConfig = {
   'complete': { label: '03', accent: 'var(--success)' },
 };
 
-export function KanbanColumn({ status, title, tasks, onDeleteTask, onEditTask, onAddTask }: KanbanColumnProps) {
+export function KanbanColumn({
+  status,
+  title,
+  tasks,
+  onDeleteTask,
+  onEditTask,
+  onAddTask,
+  isSortedByPriority,
+  onToggleSort,
+}: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
   });
@@ -48,6 +59,31 @@ export function KanbanColumn({ status, title, tasks, onDeleteTask, onEditTask, o
             [{tasks.length}]
           </span>
         </div>
+        {/* Sort Toggle */}
+        <button
+          onClick={onToggleSort}
+          className={`flex items-center gap-1.5 px-2 py-1 font-mono text-[9px] tracking-wider border transition-all ${
+            isSortedByPriority
+              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-glow)]'
+              : 'border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--border)] hover:text-[var(--text-secondary)]'
+          }`}
+          title={isSortedByPriority ? 'Showing by priority' : 'Sort by priority'}
+        >
+          <svg
+            className="w-3 h-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="square"
+              strokeLinejoin="miter"
+              strokeWidth={1.5}
+              d="M3 4h13M3 8h9M3 12h5m4 0l4-4m0 0l4 4m-4-4v12"
+            />
+          </svg>
+          PRI
+        </button>
       </div>
 
       {/* Drop Zone */}
