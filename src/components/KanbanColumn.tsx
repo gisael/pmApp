@@ -1,0 +1,111 @@
+'use client';
+
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { Task, TaskStatus } from '@/types';
+import { KanbanCard } from './KanbanCard';
+
+interface KanbanColumnProps {
+  status: TaskStatus;
+  title: string;
+  tasks: Task[];
+  onDeleteTask: (id: string) => void;
+  onEditTask: (id: string, title: string, description?: string) => void;
+  onAddTask?: () => void;
+}
+
+const statusConfig = {
+  'todo': { label: '01', accent: 'var(--text-secondary)' },
+  'in-progress': { label: '02', accent: 'var(--accent)' },
+  'complete': { label: '03', accent: 'var(--success)' },
+};
+
+export function KanbanColumn({ status, title, tasks, onDeleteTask, onEditTask, onAddTask }: KanbanColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: status,
+  });
+
+  const config = statusConfig[status];
+
+  return (
+    <div className="flex flex-col flex-1 min-w-[280px]">
+      {/* Column Header */}
+      <div className="flex items-center gap-4 mb-4 pb-3 border-b border-[var(--border-muted)]">
+        <span
+          className="font-mono text-[10px] font-semibold px-2 py-1 border"
+          style={{
+            borderColor: config.accent,
+            color: config.accent
+          }}
+        >
+          {config.label}
+        </span>
+        <div className="flex items-center gap-3 flex-1">
+          <h3 className="font-mono text-xs font-semibold tracking-[0.1em] text-[var(--text-primary)] uppercase">
+            {title}
+          </h3>
+          <span className="font-mono text-xs text-[var(--text-muted)]">
+            [{tasks.length}]
+          </span>
+        </div>
+      </div>
+
+      {/* Drop Zone */}
+      <div
+        ref={setNodeRef}
+        className={`flex-1 p-3 transition-all duration-200 min-h-[200px] ${
+          isOver
+            ? 'bg-[var(--accent-glow)] border border-[var(--accent)] border-dashed'
+            : 'bg-transparent border border-transparent'
+        }`}
+      >
+        <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          <div className="flex flex-col gap-3">
+            {tasks.map((task, index) => (
+              <div
+                key={task.id}
+                className="animate-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <KanbanCard
+                  task={task}
+                  onDelete={onDeleteTask}
+                  onEdit={onEditTask}
+                />
+              </div>
+            ))}
+          </div>
+        </SortableContext>
+
+        {/* Add Task Button */}
+        {status === 'todo' && onAddTask && (
+          <button
+            onClick={onAddTask}
+            className="mt-4 w-full p-3 border border-dashed border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all duration-200 group"
+          >
+            <div className="flex items-center justify-center gap-2">
+              <svg
+                className="w-4 h-4 transition-transform group-hover:rotate-90"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span className="font-mono text-xs tracking-wider uppercase">New Task</span>
+            </div>
+          </button>
+        )}
+
+        {/* Empty State */}
+        {tasks.length === 0 && status !== 'todo' && (
+          <div className="flex items-center justify-center h-32 border border-dashed border-[var(--border-muted)]">
+            <span className="font-mono text-xs text-[var(--text-muted)] tracking-wider">
+              DROP HERE
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

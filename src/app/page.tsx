@@ -1,65 +1,104 @@
-import Image from "next/image";
+'use client';
+
+import { KanbanBoard } from '@/components/KanbanBoard';
+import { TodoList } from '@/components/TodoList';
+import { Notes } from '@/components/Notes';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { Task, TodoItem } from '@/types';
 
 export default function Home() {
+  const [tasks, setTasks] = useLocalStorage<Task[]>('vibe-pm-tasks', []);
+  const [todos, setTodos] = useLocalStorage<TodoItem[]>('vibe-pm-todos', []);
+  const [notes, setNotes] = useLocalStorage<string>('vibe-pm-notes', '');
+
+  const currentDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.status === 'complete').length;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="h-screen flex flex-col bg-[var(--bg-primary)] grid-bg">
+      {/* Header */}
+      <header className="flex-shrink-0 border-b border-[var(--border-muted)]">
+        <div className="flex items-center justify-between px-8 py-5">
+          <div className="flex items-center gap-8">
+            <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-[var(--text-primary)]">
+              VIBE<span className="text-[var(--accent)]">_</span>PM
+            </h1>
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <span className="font-mono text-xs text-[var(--text-muted)] tracking-wide">
+              {currentDate.toUpperCase()}
+            </span>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-[var(--success)] rounded-full pulse-accent" />
+              <span className="font-mono text-xs text-[var(--text-secondary)]">
+                {completedTasks}/{totalTasks} COMPLETE
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 flex min-h-0">
+        {/* Kanban Section */}
+        <main className="flex-1 flex flex-col min-h-0 border-r border-[var(--border-muted)]">
+          <div className="px-8 py-4 border-b border-[var(--border-muted)]">
+            <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
+              PROJECT BOARD
+            </h2>
+          </div>
+          <div className="flex-1 p-6 overflow-hidden">
+            <KanbanBoard tasks={tasks} onTasksChange={setTasks} />
+          </div>
+        </main>
+
+        {/* Sidebar */}
+        <aside className="w-[340px] flex-shrink-0 flex flex-col min-h-0 bg-[var(--bg-surface)]">
+          {/* Todos Section */}
+          <div className="flex-1 flex flex-col min-h-0 border-b border-[var(--border-muted)]">
+            <div className="px-6 py-4 border-b border-[var(--border-muted)]">
+              <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
+                QUICK TASKS
+              </h2>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <TodoList todos={todos} onTodosChange={setTodos} />
+            </div>
+          </div>
+
+          {/* Notes Section */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="px-6 py-4 border-b border-[var(--border-muted)]">
+              <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
+                SCRATCH PAD
+              </h2>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <Notes notes={notes} onNotesChange={setNotes} />
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {/* Footer */}
+      <footer className="flex-shrink-0 border-t border-[var(--border-muted)] px-8 py-3">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
+            DRAG TO MOVE • CLICK TO EDIT • ESC TO CANCEL
+          </span>
+          <span className="font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
+            LOCAL STORAGE ENABLED
+          </span>
         </div>
-      </main>
+      </footer>
     </div>
   );
 }
