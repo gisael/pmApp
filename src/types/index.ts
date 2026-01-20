@@ -24,3 +24,8 @@ export interface AppState {
 }
 
 export type TaskStatus = Task['status'];
+
+export interface User {
+  id: string;
+  email?: string;
+}

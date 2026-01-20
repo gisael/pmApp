@@ -6,14 +6,17 @@ import { TodoList } from '@/components/TodoList';
 import { Notes } from '@/components/Notes';
 import { ShortcutsModal } from '@/components/ShortcutsModal';
 import { SearchFilterBar } from '@/components/SearchFilterBar';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { AuthButton } from '@/components/AuthButton';
+import { useTasks } from '@/hooks/useTasks';
+import { useTodos } from '@/hooks/useTodos';
+import { useNotes } from '@/hooks/useNotes';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { Task, TodoItem, Priority } from '@/types';
+import { Priority } from '@/types';
 
 export default function Home() {
-  const [tasks, setTasks] = useLocalStorage<Task[]>('vibe-pm-tasks', []);
-  const [todos, setTodos] = useLocalStorage<TodoItem[]>('vibe-pm-todos', []);
-  const [notes, setNotes] = useLocalStorage<string>('vibe-pm-notes', '');
+  const [tasks, setTasks, tasksLoading] = useTasks();
+  const [todos, setTodos, todosLoading] = useTodos();
+  const [notes, setNotes, notesLoading] = useNotes();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
@@ -70,6 +73,8 @@ export default function Home() {
                 {completedTasks}/{totalTasks} COMPLETE
               </span>
             </div>
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <AuthButton />
           </div>
         </div>
       </header>
@@ -141,7 +146,7 @@ export default function Home() {
             <span className="text-[var(--text-secondary)]"> ?</span> SHORTCUTS
           </span>
           <span className="font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
-            LOCAL STORAGE ENABLED
+            {tasksLoading || todosLoading || notesLoading ? 'SYNCING...' : 'CLOUD SYNCED'}
           </span>
         </div>
       </footer>
