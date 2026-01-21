@@ -8,6 +8,7 @@ export interface Task {
   dueDate?: string; // ISO date string (YYYY-MM-DD)
   status: 'todo' | 'in-progress' | 'complete';
   position: number;
+  workDate: string; // YYYY-MM-DD - the day this task belongs to
   createdAt: number;
 }
 

@@ -23,6 +23,7 @@ interface KanbanBoardProps {
   onAddModalOpenChange?: (open: boolean) => void;
   searchQuery?: string;
   priorityFilter?: Priority | 'all';
+  workDate: string;
 }
 
 const columns: { status: TaskStatus; title: string }[] = [
@@ -38,7 +39,7 @@ const priorityOrder: Record<Priority, number> = {
   low: 3,
 };
 
-export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOpenChange, searchQuery = '', priorityFilter = 'all' }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOpenChange, searchQuery = '', priorityFilter = 'all', workDate }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [internalModalOpen, setInternalModalOpen] = useState(false);
   const [addToColumn, setAddToColumn] = useState<TaskStatus>('todo');
@@ -248,6 +249,7 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
       dueDate,
       status: addToColumn,
       position: 0, // New task at top
+      workDate, // Associate with current work date
       createdAt: Date.now(),
     };
 

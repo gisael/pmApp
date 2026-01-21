@@ -94,7 +94,7 @@ export function TodoList({ todos, onTodosChange }: TodoListProps) {
             value={newTodo}
             onChange={(e) => setNewTodo(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Add quick task..."
+            placeholder="Add quick note..."
             className="input-brutal flex-1"
           />
           <button
