@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Priority } from '@/types';
 
 interface AddTaskModalProps {
@@ -23,13 +23,19 @@ export function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalProps) {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<Priority>('medium');
   const [dueDate, setDueDate] = useState('');
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setTitle('');
       setDescription('');
       setPriority('medium');
-      setDueDate('');
+      // Set default due date to today
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      setDueDate(`${yyyy}-${mm}-${dd}`);
     }
   }, [isOpen]);
 
@@ -139,12 +145,34 @@ export function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalProps) {
                 DUE DATE
               </label>
               <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="input-brutal flex-1"
-                />
+                <div className="relative flex-1">
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => {
+                      setDueDate(e.target.value);
+                      e.target.blur();
+                    }}
+                    className="input-brutal w-full opacity-0 absolute inset-0 cursor-pointer"
+                  />
+                  <div
+                    onClick={() => dateInputRef.current?.showPicker()}
+                    className="input-brutal w-full flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="text-[var(--text-primary)]">
+                      {dueDate
+                        ? (() => {
+                            const [yyyy, mm, dd] = dueDate.split('-');
+                            return `${mm}-${dd}-${yyyy.slice(2)}`;
+                          })()
+                        : 'MM-DD-YY'}
+                    </span>
+                    <svg className="w-4 h-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
                 {dueDate && (
                   <button
                     type="button"

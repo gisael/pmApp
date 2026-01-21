@@ -11,9 +11,11 @@ interface KanbanColumnProps {
   tasks: Task[];
   onDeleteTask: (id: string) => void;
   onEditTask: (id: string, title: string, description?: string, priority?: Priority, dueDate?: string) => void;
-  onAddTask?: () => void;
+  onAddTask: () => void;
   isSortedByPriority: boolean;
   onToggleSort: () => void;
+  editingTaskId: string | null;
+  onEditingChange: (id: string | null) => void;
 }
 
 const statusConfig = {
@@ -31,6 +33,8 @@ export function KanbanColumn({
   onAddTask,
   isSortedByPriority,
   onToggleSort,
+  editingTaskId,
+  onEditingChange,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
@@ -89,7 +93,7 @@ export function KanbanColumn({
       {/* Drop Zone */}
       <div
         ref={setNodeRef}
-        className={`flex-1 p-3 transition-all duration-200 min-h-[200px] ${
+        className={`flex-1 p-3 transition-all duration-200 min-h-[200px] overflow-y-auto ${
           isOver
             ? 'bg-[var(--accent-glow)] border border-[var(--accent)] border-dashed'
             : 'bg-transparent border border-transparent'
@@ -107,6 +111,9 @@ export function KanbanColumn({
                   task={task}
                   onDelete={onDeleteTask}
                   onEdit={onEditTask}
+                  isEditing={editingTaskId === task.id}
+                  isCollapsed={editingTaskId !== null && editingTaskId !== task.id}
+                  onEditingChange={onEditingChange}
                 />
               </div>
             ))}
@@ -114,28 +121,26 @@ export function KanbanColumn({
         </SortableContext>
 
         {/* Add Task Button */}
-        {status === 'todo' && onAddTask && (
-          <button
-            onClick={onAddTask}
-            className="mt-4 w-full p-3 border border-dashed border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all duration-200 group"
-          >
-            <div className="flex items-center justify-center gap-2">
-              <svg
-                className="w-4 h-4 transition-transform group-hover:rotate-90"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span className="font-mono text-xs tracking-wider uppercase">New Task</span>
-            </div>
-          </button>
-        )}
+        <button
+          onClick={onAddTask}
+          className="mt-4 w-full p-3 border border-dashed border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all duration-200 group"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <svg
+              className="w-4 h-4 transition-transform group-hover:rotate-90"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span className="font-mono text-xs tracking-wider uppercase">New Task</span>
+          </div>
+        </button>
 
         {/* Empty State */}
-        {tasks.length === 0 && status !== 'todo' && (
-          <div className="flex items-center justify-center h-32 border border-dashed border-[var(--border-muted)]">
+        {tasks.length === 0 && (
+          <div className="flex items-center justify-center h-32 border border-dashed border-[var(--border-muted)] mt-4">
             <span className="font-mono text-xs text-[var(--text-muted)] tracking-wider">
               DROP HERE
             </span>

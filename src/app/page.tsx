@@ -7,6 +7,7 @@ import { Notes } from '@/components/Notes';
 import { ShortcutsModal } from '@/components/ShortcutsModal';
 import { SearchFilterBar } from '@/components/SearchFilterBar';
 import { AuthButton } from '@/components/AuthButton';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTasks } from '@/hooks/useTasks';
 import { useTodos } from '@/hooks/useTodos';
 import { useNotes } from '@/hooks/useNotes';
@@ -73,6 +74,8 @@ export default function Home() {
                 {completedTasks}/{totalTasks} COMPLETE
               </span>
             </div>
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <ThemeToggle />
             <div className="h-4 w-px bg-[var(--border-muted)]" />
             <AuthButton />
           </div>

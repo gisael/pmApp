@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -41,10 +41,52 @@ const priorityOrder: Record<Priority, number> = {
 export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOpenChange, searchQuery = '', priorityFilter = 'all' }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [internalModalOpen, setInternalModalOpen] = useState(false);
+  const [addToColumn, setAddToColumn] = useState<TaskStatus>('todo');
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [deletedTask, setDeletedTask] = useState<Task | null>(null);
+  const [showUndoToast, setShowUndoToast] = useState(false);
 
   // Use external control if provided, otherwise use internal state
   const isModalOpen = isAddModalOpen ?? internalModalOpen;
   const setIsModalOpen = onAddModalOpenChange ?? setInternalModalOpen;
+
+  const openAddModal = (status: TaskStatus = 'todo') => {
+    setAddToColumn(status);
+    setIsModalOpen(true);
+  };
+
+  // Undo deleted task with Cmd+Z
+  const handleUndo = useCallback(() => {
+    if (deletedTask) {
+      onTasksChange([...tasks, deletedTask]);
+      setDeletedTask(null);
+      setShowUndoToast(false);
+    }
+  }, [deletedTask, tasks, onTasksChange]);
+
+  // Listen for Cmd+Z / Ctrl+Z
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && deletedTask) {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [deletedTask, handleUndo]);
+
+  // Auto-hide toast after 5 seconds
+  useEffect(() => {
+    if (showUndoToast) {
+      const timer = setTimeout(() => {
+        setShowUndoToast(false);
+        setDeletedTask(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showUndoToast]);
   const [sortByPriority, setSortByPriority] = useState<Record<TaskStatus, boolean>>({
     'todo': false,
     'in-progress': false,
@@ -190,9 +232,9 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
   };
 
   const handleAddTask = (title: string, description?: string, priority: Priority = 'medium', dueDate?: string) => {
-    // Shift all existing todo tasks down
+    // Shift all existing tasks in target column down
     const updatedTasks = tasks.map((t) => {
-      if (t.status === 'todo') {
+      if (t.status === addToColumn) {
         return { ...t, position: (t.position ?? 0) + 1 };
       }
       return t;
@@ -204,7 +246,7 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
       description,
       priority,
       dueDate,
-      status: 'todo',
+      status: addToColumn,
       position: 0, // New task at top
       createdAt: Date.now(),
     };
@@ -213,6 +255,11 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
   };
 
   const handleDeleteTask = (id: string) => {
+    const taskToDelete = tasks.find((t) => t.id === id);
+    if (taskToDelete) {
+      setDeletedTask(taskToDelete);
+      setShowUndoToast(true);
+    }
     onTasksChange(tasks.filter((t) => t.id !== id));
   };
 
@@ -232,7 +279,7 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-8 h-full">
+        <div className="flex gap-8 h-full overflow-x-auto">
           {columns.map((column) => (
             <KanbanColumn
               key={column.status}
@@ -241,9 +288,11 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
               tasks={getTasksByStatus(column.status)}
               onDeleteTask={handleDeleteTask}
               onEditTask={handleEditTask}
-              onAddTask={column.status === 'todo' ? () => setIsModalOpen(true) : undefined}
+              onAddTask={() => openAddModal(column.status)}
               isSortedByPriority={sortByPriority[column.status]}
               onToggleSort={() => handleToggleSort(column.status)}
+              editingTaskId={editingTaskId}
+              onEditingChange={setEditingTaskId}
             />
           ))}
         </div>
@@ -264,6 +313,34 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
         onClose={() => setIsModalOpen(false)}
         onAdd={handleAddTask}
       />
+
+      {/* Undo Toast */}
+      {showUndoToast && deletedTask && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in">
+          <div className="flex items-center gap-4 px-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-muted)]">
+            <span className="font-mono text-xs text-[var(--text-secondary)]">
+              TASK DELETED
+            </span>
+            <button
+              onClick={handleUndo}
+              className="font-mono text-xs text-[var(--accent)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              UNDO (⌘Z)
+            </button>
+            <button
+              onClick={() => {
+                setShowUndoToast(false);
+                setDeletedTask(null);
+              }}
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

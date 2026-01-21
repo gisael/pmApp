@@ -17,6 +17,21 @@
   --font-sans: 'IBM Plex Sans', sans-serif;
 }
 
+/* Light mode */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-surface: #f5f5f5;
+  --bg-elevated: #eeeeee;
+  --border: #000000;
+  --border-muted: #cccccc;
+  --text-primary: #000000;
+  --text-secondary: #555555;
+  --text-muted: #888888;
+  --accent: #e05535;
+  --accent-glow: rgba(224, 85, 53, 0.1);
+  --success: #22c55e;
+}
+
 @theme inline {
   --color-background: var(--bg-primary);
   --color-foreground: var(--text-primary);
@@ -56,6 +71,12 @@ body {
     linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
   background-size: 20px 20px;
+}
+
+[data-theme="light"] .grid-bg {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
 }
 
 /* Noise texture overlay */

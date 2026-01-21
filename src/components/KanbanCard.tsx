@@ -9,6 +9,9 @@ interface KanbanCardProps {
   task: Task;
   onDelete: (id: string) => void;
   onEdit: (id: string, title: string, description?: string, priority?: Priority, dueDate?: string) => void;
+  isEditing?: boolean;
+  isCollapsed?: boolean;
+  onEditingChange?: (id: string | null) => void;
 }
 
 const priorityConfig: Record<Priority, { label: string; color: string }> = {
@@ -20,12 +23,19 @@ const priorityConfig: Record<Priority, { label: string; color: string }> = {
 
 const priorities: Priority[] = ['low', 'medium', 'high', 'urgent'];
 
-export function KanbanCard({ task, onDelete, onEdit }: KanbanCardProps) {
-  const [isEditing, setIsEditing] = useState(false);
+export function KanbanCard({ task, onDelete, onEdit, isEditing: externalIsEditing, isCollapsed, onEditingChange }: KanbanCardProps) {
+  const [internalIsEditing, setInternalIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || '');
   const [editPriority, setEditPriority] = useState<Priority>(task.priority || 'medium');
   const [editDueDate, setEditDueDate] = useState(task.dueDate || '');
+
+  // Use external editing state if provided, otherwise use internal
+  const isEditing = externalIsEditing ?? internalIsEditing;
+  const setIsEditing = (editing: boolean) => {
+    setInternalIsEditing(editing);
+    onEditingChange?.(editing ? task.id : null);
+  };
 
   const {
     attributes,
@@ -99,6 +109,31 @@ export function KanbanCard({ task, onDelete, onEdit }: KanbanCardProps) {
 
   const priority = priorityConfig[task.priority] || priorityConfig.medium;
   const dueDateInfo = getDueDateInfo();
+
+  // Collapsed view when another card is being edited
+  if (isCollapsed) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className="card-brutal px-4 py-2 cursor-grab active:cursor-grabbing opacity-50"
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className="font-mono text-[9px] font-semibold px-1.5 py-0.5 border flex-shrink-0"
+            style={{ borderColor: priority.color, color: priority.color }}
+          >
+            {priority.label}
+          </span>
+          <h4 className="text-sm text-[var(--text-secondary)] truncate">
+            {task.title}
+          </h4>
+        </div>
+      </div>
+    );
+  }
 
   if (isEditing) {
     return (
@@ -175,9 +210,6 @@ export function KanbanCard({ task, onDelete, onEdit }: KanbanCardProps) {
         </div>
 
         <div className="flex gap-2">
-          <button onClick={handleSave} className="btn-brutal btn-brutal-accent flex-1">
-            Save
-          </button>
           <button
             onClick={() => {
               setEditTitle(task.title);
@@ -189,6 +221,9 @@ export function KanbanCard({ task, onDelete, onEdit }: KanbanCardProps) {
             className="btn-brutal flex-1"
           >
             Cancel
+          </button>
+          <button onClick={handleSave} className="btn-brutal btn-brutal-accent flex-1">
+            Save
           </button>
         </div>
       </div>
