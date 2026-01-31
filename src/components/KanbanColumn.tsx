@@ -11,11 +11,13 @@ interface KanbanColumnProps {
   tasks: Task[];
   onDeleteTask: (id: string) => void;
   onEditTask: (id: string, title: string, description?: string, priority?: Priority, dueDate?: string) => void;
+  onTaskClick?: (task: Task) => void;
   onAddTask: () => void;
   isSortedByPriority: boolean;
   onToggleSort: () => void;
   editingTaskId: string | null;
   onEditingChange: (id: string | null) => void;
+  subtaskCounts?: Map<string, { completed: number; total: number }>;
 }
 
 const statusConfig = {
@@ -30,11 +32,13 @@ export function KanbanColumn({
   tasks,
   onDeleteTask,
   onEditTask,
+  onTaskClick,
   onAddTask,
   isSortedByPriority,
   onToggleSort,
   editingTaskId,
   onEditingChange,
+  subtaskCounts,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
@@ -100,7 +104,7 @@ export function KanbanColumn({
         }`}
       >
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {tasks.map((task, index) => (
               <div
                 key={task.id}
@@ -111,9 +115,11 @@ export function KanbanColumn({
                   task={task}
                   onDelete={onDeleteTask}
                   onEdit={onEditTask}
+                  onClick={onTaskClick}
                   isEditing={editingTaskId === task.id}
                   isCollapsed={editingTaskId !== null && editingTaskId !== task.id}
                   onEditingChange={onEditingChange}
+                  subtaskCount={subtaskCounts?.get(task.id)}
                 />
               </div>
             ))}

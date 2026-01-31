@@ -11,12 +11,32 @@ import { ShortcutsModal } from '@/components/ShortcutsModal';
 import { SearchFilterBar } from '@/components/SearchFilterBar';
 import { AuthButton } from '@/components/AuthButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ViewSelector } from '@/components/ViewSelector';
+import { AnalyticsPanel } from '@/components/AnalyticsPanel';
+import { AchievementsPanel } from '@/components/AchievementsPanel';
+import { CalendarView } from '@/components/CalendarView';
+import { WeeklyPlanningView } from '@/components/WeeklyPlanningView';
+import { AgendaView } from '@/components/AgendaView';
 import { useTasks } from '@/hooks/useTasks';
 import { useTodos } from '@/hooks/useTodos';
 import { useDailyReflection } from '@/hooks/useDailyReflection';
 import { useWorkDate } from '@/hooks/useWorkDate';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { Priority } from '@/types';
+import { Priority, ViewType } from '@/types';
+
+function formatTargetDateForToast(dateStr: string): string {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  if (dateStr === todayStr) return 'TODAY';
+
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (dateStr === tomorrow.toISOString().split('T')[0]) return 'TOMORROW';
+
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+}
 
 export default function Home() {
   // Work date management
@@ -26,6 +46,7 @@ export default function Home() {
     isToday,
     isNewDay,
     formattedDate,
+    goToDate,
     goToPrevDay,
     goToNextDay,
     goToToday,
@@ -42,6 +63,11 @@ export default function Home() {
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isStartDayModalOpen, setIsStartDayModalOpen] = useState(isNewDay);
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
+  const [isAnalyticsPanelOpen, setIsAnalyticsPanelOpen] = useState(false);
+  const [isAchievementsPanelOpen, setIsAchievementsPanelOpen] = useState(false);
+
+  // View state
+  const [currentView, setCurrentView] = useState<ViewType>('kanban');
 
   // Toast notification state
   const [copiedToastCount, setCopiedToastCount] = useState<number | null>(null);
@@ -88,6 +114,24 @@ export default function Home() {
     setIsHistoryPanelOpen(true);
   }, []);
 
+  const handleOpenAnalytics = useCallback(() => {
+    setIsAnalyticsPanelOpen(true);
+  }, []);
+
+  const handleOpenAchievements = useCallback(() => {
+    setIsAchievementsPanelOpen(true);
+  }, []);
+
+  const handleViewChange = useCallback((view: ViewType) => {
+    setCurrentView(view);
+  }, []);
+
+  const handleDateSelectFromView = useCallback((date: string) => {
+    // Navigate to the selected date and switch to kanban view
+    goToDate(date);
+    setCurrentView('kanban');
+  }, [goToDate]);
+
   const handleTasksCopied = useCallback((count: number) => {
     refetchTasks();
     setCopiedToastCount(count);
@@ -126,6 +170,29 @@ export default function Home() {
             />
           </div>
           <div className="flex items-center gap-6">
+            <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <button
+              onClick={handleOpenAchievements}
+              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--warning)] hover:text-[var(--warning)] transition-all"
+              title="Achievements"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+              <span className="hidden sm:inline">ACHIEVEMENTS</span>
+            </button>
+            <button
+              onClick={handleOpenAnalytics}
+              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all"
+              title="Analytics"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span className="hidden sm:inline">ANALYTICS</span>
+            </button>
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 bg-[var(--success)] rounded-full pulse-accent" />
               <span className="font-mono text-xs text-[var(--text-secondary)]">
@@ -151,33 +218,58 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="flex-1 flex min-h-0">
-        {/* Kanban Section */}
+        {/* Main Content Section */}
         <main className="flex-1 flex flex-col min-h-0 border-r border-[var(--border-muted)]">
-          <div className="px-8 py-4 border-b border-[var(--border-muted)]">
-            <div className="flex items-center justify-between">
-              <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
-                PROJECT BOARD
-              </h2>
-              <SearchFilterBar
-                ref={searchInputRef}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                priorityFilter={priorityFilter}
-                onPriorityFilterChange={setPriorityFilter}
-              />
-            </div>
-          </div>
-          <div className="flex-1 p-6 overflow-hidden">
-            <KanbanBoard
-              tasks={tasks}
-              onTasksChange={setTasks}
-              isAddModalOpen={isAddModalOpen}
-              onAddModalOpenChange={setIsAddModalOpen}
-              searchQuery={searchQuery}
-              priorityFilter={priorityFilter}
-              workDate={workDate}
+          {currentView === 'kanban' && (
+            <>
+              <div className="px-8 py-4 border-b border-[var(--border-muted)]">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
+                    PROJECT BOARD
+                  </h2>
+                  <SearchFilterBar
+                    ref={searchInputRef}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    priorityFilter={priorityFilter}
+                    onPriorityFilterChange={setPriorityFilter}
+                  />
+                </div>
+              </div>
+              <div className="flex-1 p-6 overflow-hidden">
+                <KanbanBoard
+                  tasks={tasks}
+                  onTasksChange={setTasks}
+                  isAddModalOpen={isAddModalOpen}
+                  onAddModalOpenChange={setIsAddModalOpen}
+                  searchQuery={searchQuery}
+                  priorityFilter={priorityFilter}
+                  workDate={workDate}
+                />
+              </div>
+            </>
+          )}
+
+          {currentView === 'calendar' && (
+            <CalendarView
+              selectedDate={workDate}
+              onDateSelect={handleDateSelectFromView}
             />
-          </div>
+          )}
+
+          {currentView === 'weekly' && (
+            <WeeklyPlanningView
+              selectedDate={workDate}
+              onDateSelect={handleDateSelectFromView}
+            />
+          )}
+
+          {currentView === 'agenda' && (
+            <AgendaView
+              selectedDate={workDate}
+              onDateSelect={handleDateSelectFromView}
+            />
+          )}
         </main>
 
         {/* Sidebar */}
@@ -240,9 +332,21 @@ export default function Home() {
       {/* History Panel */}
       <HistoryPanel
         isOpen={isHistoryPanelOpen}
-        today={today}
+        targetDate={workDate}
         onClose={handleHistoryClose}
         onTasksCopied={handleTasksCopied}
+      />
+
+      {/* Analytics Panel */}
+      <AnalyticsPanel
+        isOpen={isAnalyticsPanelOpen}
+        onClose={() => setIsAnalyticsPanelOpen(false)}
+      />
+
+      {/* Achievements Panel */}
+      <AchievementsPanel
+        isOpen={isAchievementsPanelOpen}
+        onClose={() => setIsAchievementsPanelOpen(false)}
       />
 
       {/* Copied Tasks Toast */}
@@ -267,7 +371,7 @@ export default function Home() {
               </svg>
             </div>
             <span className="font-mono text-xs text-[var(--text-primary)]">
-              {copiedToastCount} TASK{copiedToastCount === 1 ? '' : 'S'} COPIED TO TODAY
+              {copiedToastCount} TASK{copiedToastCount === 1 ? '' : 'S'} COPIED TO {formatTargetDateForToast(workDate)}
             </span>
             <button
               onClick={() => setCopiedToastCount(null)}

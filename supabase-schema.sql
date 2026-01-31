@@ -12,6 +12,7 @@ CREATE TABLE tasks (
   status TEXT CHECK (status IN ('todo', 'in-progress', 'complete')) DEFAULT 'todo',
   position INTEGER DEFAULT 0,
   work_date DATE DEFAULT CURRENT_DATE,
+  is_achievement BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -56,9 +57,30 @@ CREATE INDEX idx_tasks_work_date ON tasks(work_date);
 CREATE INDEX idx_todos_user_id ON todos(user_id);
 CREATE INDEX idx_notes_user_id ON notes(user_id);
 CREATE INDEX idx_notes_work_date ON notes(work_date);
+CREATE INDEX idx_tasks_is_achievement ON tasks(is_achievement);
+
+-- Subtasks table (checklists within tasks)
+CREATE TABLE subtasks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  task_id UUID REFERENCES tasks(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  title TEXT NOT NULL,
+  completed BOOLEAN DEFAULT FALSE,
+  position INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE subtasks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can CRUD own subtasks" ON subtasks
+  FOR ALL USING (auth.uid() = user_id);
+
+CREATE INDEX idx_subtasks_task_id ON subtasks(task_id);
+CREATE INDEX idx_subtasks_user_id ON subtasks(user_id);
 
 -- Enable realtime for all tables (optional, for live updates)
 -- Run these in Supabase Dashboard > Database > Replication if needed:
 -- ALTER PUBLICATION supabase_realtime ADD TABLE tasks;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE todos;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE notes;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE subtasks;

@@ -14,6 +14,7 @@ interface DbTask {
   status: string;
   position: number;
   work_date: string;
+  is_achievement: boolean;
   created_at: string;
 }
 
@@ -27,6 +28,7 @@ function mapDbTaskToTask(dbTask: DbTask): Task {
     status: dbTask.status as Task['status'],
     position: dbTask.position,
     workDate: dbTask.work_date,
+    isAchievement: dbTask.is_achievement ?? false,
     createdAt: new Date(dbTask.created_at).getTime(),
   };
 }
@@ -103,7 +105,8 @@ export function useTasks(workDate: string): [Task[], (tasks: Task[] | ((prev: Ta
           existing.priority !== t.priority ||
           existing.dueDate !== t.dueDate ||
           existing.status !== t.status ||
-          existing.position !== t.position
+          existing.position !== t.position ||
+          existing.isAchievement !== t.isAchievement
         );
       });
 
@@ -121,6 +124,7 @@ export function useTasks(workDate: string): [Task[], (tasks: Task[] | ((prev: Ta
             status: task.status,
             position: task.position,
             work_date: task.workDate,
+            is_achievement: task.isAchievement || false,
           });
         if (error) console.error('Error creating task:', error);
       }
@@ -145,6 +149,7 @@ export function useTasks(workDate: string): [Task[], (tasks: Task[] | ((prev: Ta
             due_date: task.dueDate || null,
             status: task.status,
             position: task.position,
+            is_achievement: task.isAchievement || false,
           })
           .eq('id', task.id);
         if (error) console.error('Error updating task:', error);
@@ -165,6 +170,13 @@ export async function copyTasksToDate(
 ): Promise<number> {
   const supabase = createClient();
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    console.error('No authenticated user for copying tasks');
+    return 0;
+  }
+
   // Fetch the tasks to copy
   const { data: tasksToCopy, error: fetchError } = await supabase
     .from('tasks')
@@ -184,6 +196,7 @@ export async function copyTasksToDate(
   // Insert as new tasks with the target date, preserving original status
   const newTasks = tasksToCopy.map((task: DbTask, index: number) => ({
     id: crypto.randomUUID(),
+    user_id: user.id,
     title: task.title,
     description: task.description,
     priority: task.priority,
@@ -191,6 +204,7 @@ export async function copyTasksToDate(
     status: task.status, // Preserve original status (todo/in-progress)
     position: index,
     work_date: targetDate,
+    is_achievement: task.is_achievement || false,
   }));
 
   const { error: insertError } = await supabase

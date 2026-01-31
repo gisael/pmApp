@@ -6,7 +6,7 @@ import { getTaskHistory, getTasksFromDate, copyTasksToDate } from '@/hooks/useTa
 
 interface HistoryPanelProps {
   isOpen: boolean;
-  today: string;
+  targetDate: string;
   onClose: () => void;
   onTasksCopied: (count: number) => void;
 }
@@ -34,7 +34,31 @@ const PRIORITY_COLORS = {
   urgent: 'var(--priority-urgent)',
 };
 
-export function HistoryPanel({ isOpen, today, onClose, onTasksCopied }: HistoryPanelProps) {
+function formatTargetDate(dateStr: string): string {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  if (dateStr === todayStr) {
+    return 'TODAY';
+  }
+
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+  if (dateStr === tomorrowStr) {
+    return 'TOMORROW';
+  }
+
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).toUpperCase();
+}
+
+export function HistoryPanel({ isOpen, targetDate, onClose, onTasksCopied }: HistoryPanelProps) {
   const [history, setHistory] = useState<DateHistory[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -51,13 +75,13 @@ export function HistoryPanel({ isOpen, today, onClose, onTasksCopied }: HistoryP
       setTasks([]);
       setSelectedTaskIds(new Set());
       getTaskHistory().then((data) => {
-        // Filter out today and sort by date descending
-        const filtered = data.filter((d) => d.date !== today);
+        // Filter out target date and sort by date descending
+        const filtered = data.filter((d) => d.date !== targetDate);
         setHistory(filtered);
         setLoadingHistory(false);
       });
     }
-  }, [isOpen, today]);
+  }, [isOpen, targetDate]);
 
   // Fetch tasks when a date is selected
   useEffect(() => {
@@ -90,11 +114,11 @@ export function HistoryPanel({ isOpen, today, onClose, onTasksCopied }: HistoryP
     setSelectedTaskIds(new Set(incompleteIds));
   };
 
-  const handleCopyToToday = async () => {
+  const handleCopyToTargetDate = async () => {
     if (selectedTaskIds.size === 0 || !selectedDate) return;
 
     setCopying(true);
-    const count = await copyTasksToDate(Array.from(selectedTaskIds), selectedDate, today);
+    const count = await copyTasksToDate(Array.from(selectedTaskIds), selectedDate, targetDate);
     setCopying(false);
 
     if (count > 0) {
@@ -298,13 +322,13 @@ export function HistoryPanel({ isOpen, today, onClose, onTasksCopied }: HistoryP
             CANCEL
           </button>
           <button
-            onClick={handleCopyToToday}
+            onClick={handleCopyToTargetDate}
             disabled={selectedTaskIds.size === 0 || copying}
             className="px-4 py-2 font-mono text-xs tracking-wide bg-[var(--accent)] text-[var(--bg-primary)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
           >
             {copying
               ? 'COPYING...'
-              : `COPY TO TODAY${selectedTaskIds.size > 0 ? ` (${selectedTaskIds.size})` : ''}`}
+              : `COPY TO ${formatTargetDate(targetDate)}${selectedTaskIds.size > 0 ? ` (${selectedTaskIds.size})` : ''}`}
           </button>
         </div>
       </div>

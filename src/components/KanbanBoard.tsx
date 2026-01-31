@@ -14,7 +14,9 @@ import {
 import { Task, TaskStatus, Priority } from '@/types';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
-import { AddTaskModal } from './AddTaskModal';
+import { TaskDetailModal } from './TaskDetailModal';
+import { getSubtaskCounts } from '@/hooks/useSubtasks';
+import { createClient } from '@/lib/supabase/client';
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -46,10 +48,19 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [deletedTask, setDeletedTask] = useState<Task | null>(null);
   const [showUndoToast, setShowUndoToast] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [subtaskCounts, setSubtaskCounts] = useState<Map<string, { completed: number; total: number }>>(new Map());
 
   // Use external control if provided, otherwise use internal state
   const isModalOpen = isAddModalOpen ?? internalModalOpen;
   const setIsModalOpen = onAddModalOpenChange ?? setInternalModalOpen;
+
+  // Reset to 'todo' (backlog) when modal opens via external control (e.g., 'n' shortcut)
+  useEffect(() => {
+    if (isAddModalOpen) {
+      setAddToColumn('todo');
+    }
+  }, [isAddModalOpen]);
 
   const openAddModal = (status: TaskStatus = 'todo') => {
     setAddToColumn(status);
@@ -88,6 +99,68 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
       return () => clearTimeout(timer);
     }
   }, [showUndoToast]);
+
+  // Fetch subtask counts for all tasks
+  const fetchSubtaskCounts = useCallback(async () => {
+    const taskIds = tasks.map((t) => t.id);
+    if (taskIds.length > 0) {
+      const counts = await getSubtaskCounts(taskIds);
+      setSubtaskCounts(counts);
+    } else {
+      setSubtaskCounts(new Map());
+    }
+  }, [tasks]);
+
+  useEffect(() => {
+    fetchSubtaskCounts();
+  }, [fetchSubtaskCounts]);
+
+  // Subscribe to realtime subtask changes to update counts
+  useEffect(() => {
+    const supabase = createClient();
+
+    const channel = supabase
+      .channel('subtasks-changes-for-counts')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'subtasks' },
+        () => {
+          fetchSubtaskCounts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchSubtaskCounts]);
+
+  // Update selected task when tasks change (e.g., after edit)
+  useEffect(() => {
+    if (selectedTask) {
+      const updatedTask = tasks.find((t) => t.id === selectedTask.id);
+      if (updatedTask) {
+        setSelectedTask(updatedTask);
+      }
+    }
+  }, [tasks, selectedTask]);
+
+  const handleTaskClick = useCallback((task: Task) => {
+    setSelectedTask(task);
+  }, []);
+
+  const handleTaskDetailClose = useCallback(() => {
+    setSelectedTask(null);
+    // Refresh subtask counts when modal closes (in case subtasks were modified)
+    fetchSubtaskCounts();
+  }, [fetchSubtaskCounts]);
+
+  const handleStatusChange = useCallback((taskId: string, newStatus: TaskStatus) => {
+    onTasksChange(
+      tasks.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+    );
+  }, [tasks, onTasksChange]);
+
   const [sortByPriority, setSortByPriority] = useState<Record<TaskStatus, boolean>>({
     'todo': false,
     'in-progress': false,
@@ -232,10 +305,11 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
     }
   };
 
-  const handleAddTask = (title: string, description?: string, priority: Priority = 'medium', dueDate?: string) => {
+  const handleAddTask = (title: string, description?: string, priority: Priority = 'medium', dueDate?: string, status?: TaskStatus, isAchievement?: boolean) => {
+    const targetStatus = status ?? addToColumn;
     // Shift all existing tasks in target column down
     const updatedTasks = tasks.map((t) => {
-      if (t.status === addToColumn) {
+      if (t.status === targetStatus) {
         return { ...t, position: (t.position ?? 0) + 1 };
       }
       return t;
@@ -247,9 +321,10 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
       description,
       priority,
       dueDate,
-      status: addToColumn,
+      status: targetStatus,
       position: 0, // New task at top
       workDate, // Associate with current work date
+      isAchievement: isAchievement || false,
       createdAt: Date.now(),
     };
 
@@ -265,10 +340,10 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
     onTasksChange(tasks.filter((t) => t.id !== id));
   };
 
-  const handleEditTask = (id: string, title: string, description?: string, priority?: Priority, dueDate?: string) => {
+  const handleEditTask = (id: string, title: string, description?: string, priority?: Priority, dueDate?: string, isAchievement?: boolean) => {
     onTasksChange(
       tasks.map((t) =>
-        t.id === id ? { ...t, title, description, ...(priority && { priority }), dueDate } : t
+        t.id === id ? { ...t, title, description, ...(priority && { priority }), dueDate, isAchievement: isAchievement ?? t.isAchievement } : t
       )
     );
   };
@@ -290,11 +365,13 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
               tasks={getTasksByStatus(column.status)}
               onDeleteTask={handleDeleteTask}
               onEditTask={handleEditTask}
+              onTaskClick={handleTaskClick}
               onAddTask={() => openAddModal(column.status)}
               isSortedByPriority={sortByPriority[column.status]}
               onToggleSort={() => handleToggleSort(column.status)}
               editingTaskId={editingTaskId}
               onEditingChange={setEditingTaskId}
+              subtaskCounts={subtaskCounts}
             />
           ))}
         </div>
@@ -310,10 +387,26 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
           ) : null}
         </DragOverlay>
       </DndContext>
-      <AddTaskModal
+      {/* Create Task Modal */}
+      <TaskDetailModal
+        task={null}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onAdd={handleAddTask}
+        onEdit={handleEditTask}
+        onDelete={handleDeleteTask}
+        onStatusChange={handleStatusChange}
+        mode="create"
+        onCreate={handleAddTask}
+        initialStatus={addToColumn}
+      />
+      {/* Edit Task Modal */}
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={selectedTask !== null}
+        onClose={handleTaskDetailClose}
+        onEdit={handleEditTask}
+        onDelete={handleDeleteTask}
+        onStatusChange={handleStatusChange}
       />
 
       {/* Undo Toast */}
