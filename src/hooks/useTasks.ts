@@ -286,3 +286,70 @@ export async function getTasksFromDate(date: string): Promise<Task[]> {
 
   return (data as DbTask[]).map(mapDbTaskToTask);
 }
+
+// Utility function to rollover incomplete tasks to today
+// - Tasks without due date: move to today
+// - Tasks with future due date: move to today
+// - Tasks with past due date: pin to their due date
+export async function rolloverTasksToToday(): Promise<{
+  rolledCount: number;
+  pinnedCount: number;
+}> {
+  const supabase = createClient();
+  const today = new Date().toISOString().split('T')[0];
+
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { rolledCount: 0, pinnedCount: 0 };
+  }
+
+  // Fetch all incomplete tasks from past dates
+  const { data: pastTasks, error } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('user_id', user.id)
+    .lt('work_date', today)
+    .neq('status', 'complete');
+
+  if (error || !pastTasks) {
+    console.error('Error fetching tasks for rollover:', error);
+    return { rolledCount: 0, pinnedCount: 0 };
+  }
+
+  let rolledCount = 0;
+  let pinnedCount = 0;
+
+  for (const task of pastTasks as DbTask[]) {
+    let newWorkDate: string;
+
+    if (!task.due_date) {
+      // No due date: move to today
+      newWorkDate = today;
+    } else if (task.due_date >= today) {
+      // Due date is today or future: move to today
+      newWorkDate = today;
+    } else {
+      // Due date is past: pin to due date (if not already there)
+      if (task.work_date === task.due_date) {
+        // Already pinned, skip
+        continue;
+      }
+      newWorkDate = task.due_date;
+      pinnedCount++;
+    }
+
+    if (newWorkDate !== task.work_date) {
+      const { error: updateError } = await supabase
+        .from('tasks')
+        .update({ work_date: newWorkDate })
+        .eq('id', task.id);
+
+      if (!updateError && newWorkDate === today) {
+        rolledCount++;
+      }
+    }
+  }
+
+  return { rolledCount, pinnedCount };
+}

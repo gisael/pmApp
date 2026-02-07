@@ -71,6 +71,7 @@ export default function Home() {
 
   // Toast notification state
   const [copiedToastCount, setCopiedToastCount] = useState<number | null>(null);
+  const [rolloverToastInfo, setRolloverToastInfo] = useState<{ rolledCount: number; pinnedCount: number } | null>(null);
 
   // Search and filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,6 +138,13 @@ export default function Home() {
     setCopiedToastCount(count);
   }, [refetchTasks]);
 
+  const handleTasksRolledOver = useCallback((result: { rolledCount: number; pinnedCount: number }) => {
+    if (result.rolledCount > 0 || result.pinnedCount > 0) {
+      refetchTasks();
+      setRolloverToastInfo(result);
+    }
+  }, [refetchTasks]);
+
   // Auto-hide copied toast after 3 seconds
   useEffect(() => {
     if (copiedToastCount !== null) {
@@ -146,6 +154,16 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [copiedToastCount]);
+
+  // Auto-hide rollover toast after 4 seconds
+  useEffect(() => {
+    if (rolloverToastInfo !== null) {
+      const timer = setTimeout(() => {
+        setRolloverToastInfo(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [rolloverToastInfo]);
 
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.status === 'complete').length;
@@ -327,6 +345,7 @@ export default function Home() {
         onClose={handleStartDayClose}
         onOpenHistory={handleOpenHistoryFromStartDay}
         onTasksCopied={handleTasksCopied}
+        onTasksRolledOver={handleTasksRolledOver}
       />
 
       {/* History Panel */}
@@ -375,6 +394,48 @@ export default function Home() {
             </span>
             <button
               onClick={() => setCopiedToastCount(null)}
+              className="ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Rollover Tasks Toast */}
+      {rolloverToastInfo !== null && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in">
+          <div className="flex items-center gap-3 px-5 py-3 bg-[var(--bg-elevated)] border border-[var(--accent)]/30 shadow-lg">
+            <div className="w-6 h-6 rounded-full bg-[var(--accent)]/20 flex items-center justify-center flex-shrink-0">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M13 5l7 7-7 7M5 12h14"
+                  stroke="var(--accent)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <span className="font-mono text-xs text-[var(--text-primary)]">
+              {rolloverToastInfo.rolledCount > 0 && (
+                <>{rolloverToastInfo.rolledCount} TASK{rolloverToastInfo.rolledCount === 1 ? '' : 'S'} ROLLED FORWARD</>
+              )}
+              {rolloverToastInfo.rolledCount > 0 && rolloverToastInfo.pinnedCount > 0 && ' • '}
+              {rolloverToastInfo.pinnedCount > 0 && (
+                <>{rolloverToastInfo.pinnedCount} PINNED TO DUE DATE</>
+              )}
+            </span>
+            <button
+              onClick={() => setRolloverToastInfo(null)}
               className="ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -111,6 +111,7 @@ export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externa
 
   const priority = priorityConfig[task.priority] || priorityConfig.medium;
   const dueDateInfo = getDueDateInfo();
+  const isDueToday = task.dueDate && task.workDate === task.dueDate;
 
   // Collapsed view when another card is being edited
   if (isCollapsed) {
@@ -250,7 +251,9 @@ export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externa
       onClick={handleCardClick}
       className={`card-brutal px-3 py-2 cursor-grab active:cursor-grabbing group ${
         isDragging ? 'opacity-50 border-[var(--accent)]' : ''
-      } ${dueDateInfo?.isOverdue ? 'border-l-2 border-l-[#ef4444]' : ''}`}
+      } ${dueDateInfo?.isOverdue ? 'border-l-2 border-l-[#ef4444]' : ''} ${
+        isDueToday && !dueDateInfo?.isOverdue ? 'ring-2 ring-[var(--warning)] ring-inset' : ''
+      }`}
     >
       {/* Header with priority and timestamp */}
       <div className="flex items-start justify-between gap-2 mb-1">
@@ -309,7 +312,12 @@ export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externa
               </span>
             </div>
           )}
-          {dueDateInfo && (
+          {isDueToday && !dueDateInfo?.isOverdue && (
+            <span className="font-mono text-[10px] tracking-wider text-[var(--warning)] font-semibold animate-pulse">
+              DUE TODAY
+            </span>
+          )}
+          {dueDateInfo && !isDueToday && (
             <span
               className={`font-mono text-[10px] tracking-wider ${
                 dueDateInfo.isOverdue

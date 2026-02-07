@@ -13,6 +13,7 @@
   --accent: #ff6b4a;
   --accent-glow: rgba(255, 107, 74, 0.15);
   --success: #4ade80;
+  --warning: #f59e0b;
   --font-mono: 'IBM Plex Mono', monospace;
   --font-sans: 'IBM Plex Sans', sans-serif;
 }
@@ -30,6 +31,7 @@
   --accent: #e05535;
   --accent-glow: rgba(224, 85, 53, 0.1);
   --success: #22c55e;
+  --warning: #d97706;
 }
 
 @theme inline {
