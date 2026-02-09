@@ -10,7 +10,7 @@ interface StartDayModalProps {
   onClose: () => void;
   onOpenHistory: () => void;
   onTasksCopied: (count: number) => void;
-  onTasksRolledOver?: (result: { rolledCount: number; pinnedCount: number }) => void;
+  onTasksRolledOver?: (result: { rolledCount: number; expiredCount: number }) => void;
 }
 
 function formatDateForDisplay(dateStr: string): string {
@@ -45,7 +45,7 @@ export function StartDayModal({
   const [yesterdayTasks, setYesterdayTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState(false);
-  const [rolloverResult, setRolloverResult] = useState<{ rolledCount: number; pinnedCount: number } | null>(null);
+  const [rolloverResult, setRolloverResult] = useState<{ rolledCount: number; expiredCount: number } | null>(null);
 
   const yesterday = getYesterday(today);
 
@@ -64,7 +64,7 @@ export function StartDayModal({
         setLoading(false);
 
         // Notify parent about rollover
-        if (rollover.rolledCount > 0 || rollover.pinnedCount > 0) {
+        if (rollover.rolledCount > 0 || rollover.expiredCount > 0) {
           onTasksRolledOver?.(rollover);
         }
       });
@@ -110,14 +110,14 @@ export function StartDayModal({
           <p className="mt-2 font-mono text-xs text-[var(--text-muted)] tracking-wide">
             {formatDateForDisplay(today)}
           </p>
-          {rolloverResult && (rolloverResult.rolledCount > 0 || rolloverResult.pinnedCount > 0) && (
+          {rolloverResult && (rolloverResult.rolledCount > 0 || rolloverResult.expiredCount > 0) && (
             <p className="mt-3 font-mono text-[10px] text-[var(--accent)] tracking-wider">
               {rolloverResult.rolledCount > 0 && (
                 <span>{rolloverResult.rolledCount} TASK{rolloverResult.rolledCount === 1 ? '' : 'S'} ROLLED FORWARD</span>
               )}
-              {rolloverResult.rolledCount > 0 && rolloverResult.pinnedCount > 0 && ' • '}
-              {rolloverResult.pinnedCount > 0 && (
-                <span>{rolloverResult.pinnedCount} PINNED TO DUE DATE</span>
+              {rolloverResult.rolledCount > 0 && rolloverResult.expiredCount > 0 && ' • '}
+              {rolloverResult.expiredCount > 0 && (
+                <span className="text-[#ef4444]">{rolloverResult.expiredCount} EXPIRED</span>
               )}
             </p>
           )}

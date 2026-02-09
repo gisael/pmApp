@@ -13,6 +13,7 @@ CREATE TABLE tasks (
   position INTEGER DEFAULT 0,
   work_date DATE DEFAULT CURRENT_DATE,
   is_achievement BOOLEAN DEFAULT FALSE,
+  rolled_past_due BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -77,6 +78,9 @@ CREATE POLICY "Users can CRUD own subtasks" ON subtasks
 
 CREATE INDEX idx_subtasks_task_id ON subtasks(task_id);
 CREATE INDEX idx_subtasks_user_id ON subtasks(user_id);
+
+-- Migration: Add rolled_past_due column to existing tasks table
+-- ALTER TABLE tasks ADD COLUMN rolled_past_due BOOLEAN DEFAULT FALSE;
 
 -- Enable realtime for all tables (optional, for live updates)
 -- Run these in Supabase Dashboard > Database > Replication if needed:

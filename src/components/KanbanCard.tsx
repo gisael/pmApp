@@ -95,18 +95,21 @@ export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externa
     const diffDays = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
-      return { label: `${Math.abs(diffDays)}d overdue`, isOverdue: true, isDueSoon: false };
+      if (task.rolledPastDue) {
+        return { label: 'LAST ROLLOVER', isOverdue: false, isDueSoon: false, isLastRollover: true };
+      }
+      return { label: `${Math.abs(diffDays)}d overdue`, isOverdue: true, isDueSoon: false, isLastRollover: false };
     }
     if (diffDays === 0) {
-      return { label: 'Due today', isOverdue: false, isDueSoon: true };
+      return { label: 'Due today', isOverdue: false, isDueSoon: true, isLastRollover: false };
     }
     if (diffDays === 1) {
-      return { label: 'Due tomorrow', isOverdue: false, isDueSoon: true };
+      return { label: 'Due tomorrow', isOverdue: false, isDueSoon: true, isLastRollover: false };
     }
     if (diffDays <= 3) {
-      return { label: `Due in ${diffDays}d`, isOverdue: false, isDueSoon: true };
+      return { label: `Due in ${diffDays}d`, isOverdue: false, isDueSoon: true, isLastRollover: false };
     }
-    return { label: `Due ${due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`, isOverdue: false, isDueSoon: false };
+    return { label: `Due ${due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`, isOverdue: false, isDueSoon: false, isLastRollover: false };
   };
 
   const priority = priorityConfig[task.priority] || priorityConfig.medium;
@@ -252,7 +255,8 @@ export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externa
       className={`card-brutal px-3 py-2 cursor-grab active:cursor-grabbing group ${
         isDragging ? 'opacity-50 border-[var(--accent)]' : ''
       } ${dueDateInfo?.isOverdue ? 'border-l-2 border-l-[#ef4444]' : ''} ${
-        isDueToday && !dueDateInfo?.isOverdue ? 'ring-2 ring-[var(--warning)] ring-inset' : ''
+        dueDateInfo?.isLastRollover ? 'border-l-[3px] border-l-[#ef4444]' : ''
+      } ${isDueToday && !dueDateInfo?.isOverdue ? 'ring-2 ring-[var(--warning)] ring-inset' : ''
       }`}
     >
       {/* Header with priority and timestamp */}
@@ -320,7 +324,9 @@ export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externa
           {dueDateInfo && !isDueToday && (
             <span
               className={`font-mono text-[10px] tracking-wider ${
-                dueDateInfo.isOverdue
+                dueDateInfo.isLastRollover
+                  ? 'text-[#ef4444] font-semibold'
+                  : dueDateInfo.isOverdue
                   ? 'text-[#ef4444]'
                   : dueDateInfo.isDueSoon
                   ? 'text-[var(--accent)]'

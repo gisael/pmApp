@@ -15,6 +15,7 @@ interface DbTask {
   position: number;
   work_date: string;
   is_achievement: boolean;
+  rolled_past_due: boolean;
   created_at: string;
 }
 
@@ -29,6 +30,7 @@ function mapDbTaskToTask(dbTask: DbTask): Task {
     position: dbTask.position,
     workDate: dbTask.work_date,
     isAchievement: dbTask.is_achievement ?? false,
+    rolledPastDue: dbTask.rolled_past_due ?? false,
     createdAt: new Date(dbTask.created_at).getTime(),
   };
 }
@@ -106,7 +108,8 @@ export function useTasks(workDate: string): [Task[], (tasks: Task[] | ((prev: Ta
           existing.dueDate !== t.dueDate ||
           existing.status !== t.status ||
           existing.position !== t.position ||
-          existing.isAchievement !== t.isAchievement
+          existing.isAchievement !== t.isAchievement ||
+          existing.rolledPastDue !== t.rolledPastDue
         );
       });
 
@@ -125,6 +128,7 @@ export function useTasks(workDate: string): [Task[], (tasks: Task[] | ((prev: Ta
             position: task.position,
             work_date: task.workDate,
             is_achievement: task.isAchievement || false,
+            rolled_past_due: task.rolledPastDue || false,
           });
         if (error) console.error('Error creating task:', error);
       }
@@ -140,6 +144,11 @@ export function useTasks(workDate: string): [Task[], (tasks: Task[] | ((prev: Ta
 
       // Update tasks
       for (const task of toUpdate) {
+        const existing = tasks.find(e => e.id === task.id);
+        // Reset rolled_past_due when due date changes
+        const dueDateChanged = existing && existing.dueDate !== task.dueDate;
+        const rolledPastDue = dueDateChanged ? false : (task.rolledPastDue || false);
+
         const { error } = await supabase
           .from('tasks')
           .update({
@@ -150,6 +159,7 @@ export function useTasks(workDate: string): [Task[], (tasks: Task[] | ((prev: Ta
             status: task.status,
             position: task.position,
             is_achievement: task.isAchievement || false,
+            rolled_past_due: rolledPastDue,
           })
           .eq('id', task.id);
         if (error) console.error('Error updating task:', error);
@@ -205,6 +215,7 @@ export async function copyTasksToDate(
     position: index,
     work_date: targetDate,
     is_achievement: task.is_achievement || false,
+    rolled_past_due: task.rolled_past_due || false,
   }));
 
   const { error: insertError } = await supabase
@@ -288,12 +299,13 @@ export async function getTasksFromDate(date: string): Promise<Task[]> {
 }
 
 // Utility function to rollover incomplete tasks to today
-// - Tasks without due date: move to today
-// - Tasks with future due date: move to today
-// - Tasks with past due date: pin to their due date
+// - Tasks without due date: always roll forward
+// - Tasks with future/today due date: roll forward (set rpd=true if due today)
+// - Tasks past due + rpd=false: roll forward one grace day (set rpd=true)
+// - Tasks past due + rpd=true: expired, don't roll
 export async function rolloverTasksToToday(): Promise<{
   rolledCount: number;
-  pinnedCount: number;
+  expiredCount: number;
 }> {
   const supabase = createClient();
   const today = new Date().toISOString().split('T')[0];
@@ -301,7 +313,7 @@ export async function rolloverTasksToToday(): Promise<{
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return { rolledCount: 0, pinnedCount: 0 };
+    return { rolledCount: 0, expiredCount: 0 };
   }
 
   // Fetch all incomplete tasks from past dates
@@ -314,42 +326,49 @@ export async function rolloverTasksToToday(): Promise<{
 
   if (error || !pastTasks) {
     console.error('Error fetching tasks for rollover:', error);
-    return { rolledCount: 0, pinnedCount: 0 };
+    return { rolledCount: 0, expiredCount: 0 };
   }
 
   let rolledCount = 0;
-  let pinnedCount = 0;
+  let expiredCount = 0;
 
   for (const task of pastTasks as DbTask[]) {
-    let newWorkDate: string;
-
     if (!task.due_date) {
-      // No due date: move to today
-      newWorkDate = today;
-    } else if (task.due_date >= today) {
-      // Due date is today or future: move to today
-      newWorkDate = today;
-    } else {
-      // Due date is past: pin to due date (if not already there)
-      if (task.work_date === task.due_date) {
-        // Already pinned, skip
-        continue;
-      }
-      newWorkDate = task.due_date;
-      pinnedCount++;
-    }
-
-    if (newWorkDate !== task.work_date) {
+      // No due date: always roll forward
       const { error: updateError } = await supabase
         .from('tasks')
-        .update({ work_date: newWorkDate })
+        .update({ work_date: today })
         .eq('id', task.id);
-
-      if (!updateError && newWorkDate === today) {
-        rolledCount++;
+      if (!updateError) rolledCount++;
+    } else if (task.due_date > today) {
+      // Due date is in the future: roll forward
+      const { error: updateError } = await supabase
+        .from('tasks')
+        .update({ work_date: today })
+        .eq('id', task.id);
+      if (!updateError) rolledCount++;
+    } else if (task.due_date === today) {
+      // Due date is today: roll forward, mark as rolled past due
+      const { error: updateError } = await supabase
+        .from('tasks')
+        .update({ work_date: today, rolled_past_due: true })
+        .eq('id', task.id);
+      if (!updateError) rolledCount++;
+    } else {
+      // Due date is in the past
+      if (!task.rolled_past_due) {
+        // One-time grace: roll forward and set flag
+        const { error: updateError } = await supabase
+          .from('tasks')
+          .update({ work_date: today, rolled_past_due: true })
+          .eq('id', task.id);
+        if (!updateError) rolledCount++;
+      } else {
+        // Grace already used: don't roll
+        expiredCount++;
       }
     }
   }
 
-  return { rolledCount, pinnedCount };
+  return { rolledCount, expiredCount };
 }

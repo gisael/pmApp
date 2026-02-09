@@ -71,7 +71,7 @@ export default function Home() {
 
   // Toast notification state
   const [copiedToastCount, setCopiedToastCount] = useState<number | null>(null);
-  const [rolloverToastInfo, setRolloverToastInfo] = useState<{ rolledCount: number; pinnedCount: number } | null>(null);
+  const [rolloverToastInfo, setRolloverToastInfo] = useState<{ rolledCount: number; expiredCount: number } | null>(null);
 
   // Search and filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -138,8 +138,8 @@ export default function Home() {
     setCopiedToastCount(count);
   }, [refetchTasks]);
 
-  const handleTasksRolledOver = useCallback((result: { rolledCount: number; pinnedCount: number }) => {
-    if (result.rolledCount > 0 || result.pinnedCount > 0) {
+  const handleTasksRolledOver = useCallback((result: { rolledCount: number; expiredCount: number }) => {
+    if (result.rolledCount > 0 || result.expiredCount > 0) {
       refetchTasks();
       setRolloverToastInfo(result);
     }
@@ -429,9 +429,9 @@ export default function Home() {
               {rolloverToastInfo.rolledCount > 0 && (
                 <>{rolloverToastInfo.rolledCount} TASK{rolloverToastInfo.rolledCount === 1 ? '' : 'S'} ROLLED FORWARD</>
               )}
-              {rolloverToastInfo.rolledCount > 0 && rolloverToastInfo.pinnedCount > 0 && ' • '}
-              {rolloverToastInfo.pinnedCount > 0 && (
-                <>{rolloverToastInfo.pinnedCount} PINNED TO DUE DATE</>
+              {rolloverToastInfo.rolledCount > 0 && rolloverToastInfo.expiredCount > 0 && ' • '}
+              {rolloverToastInfo.expiredCount > 0 && (
+                <>{rolloverToastInfo.expiredCount} EXPIRED</>
               )}
             </span>
             <button

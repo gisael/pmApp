@@ -10,6 +10,7 @@ export interface Task {
   position: number;
   workDate: string; // YYYY-MM-DD - the day this task belongs to
   isAchievement?: boolean; // Mark task as an achievement for annual review
+  rolledPastDue?: boolean; // Grace period used - one rollover after due date
   createdAt: number;
 }
 
