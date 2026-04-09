@@ -239,10 +239,10 @@ export function TaskDetailModal({
   const priority = priorityConfig[currentPriority];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4 bg-black/60 backdrop-blur-sm">
       <div
         ref={modalRef}
-        className="bg-[var(--bg-primary)] border border-[var(--border)] w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
+        className="bg-[var(--bg-primary)] border border-[var(--border)] w-full max-w-2xl max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col rounded-t-lg md:rounded-none"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-muted)]">
@@ -427,7 +427,7 @@ export function TaskDetailModal({
           )}
 
           {/* Properties */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Status */}
             <div>
               <label className="block font-mono text-[10px] text-[var(--text-muted)] tracking-wider mb-2">

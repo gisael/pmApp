@@ -47,7 +47,7 @@ export function KanbanColumn({
   const config = statusConfig[status];
 
   return (
-    <div className="flex flex-col flex-1 min-w-[280px]">
+    <div className="flex flex-col flex-shrink-0 w-[85vw] md:w-auto md:flex-1 md:min-w-[280px] snap-center">
       {/* Column Header */}
       <div className="flex items-center gap-4 mb-4 pb-3 border-b border-[var(--border-muted)]">
         <span

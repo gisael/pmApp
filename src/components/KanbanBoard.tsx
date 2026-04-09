@@ -382,7 +382,7 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-8 h-full overflow-x-auto">
+        <div className="flex gap-4 md:gap-8 h-full overflow-x-auto snap-x snap-mandatory md:snap-none pb-4">
           {columns.map((column) => (
             <KanbanColumn
               key={column.status}

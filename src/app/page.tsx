@@ -170,14 +170,14 @@ export default function Home() {
 
   return (
     <div className="h-screen h-dvh flex flex-col bg-[var(--bg-primary)] grid-bg">
-      {/* Header */}
+      {/* Header - Desktop */}
       <header className="flex-shrink-0 border-b border-[var(--border-muted)]">
-        <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-5 gap-2">
-          <div className="flex items-center gap-3 md:gap-8 min-w-0">
-            <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-[var(--text-primary)] flex-shrink-0">
+        <div className="hidden md:flex items-center justify-between px-8 py-5">
+          <div className="flex items-center gap-8">
+            <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-[var(--text-primary)]">
               VIBE<span className="text-[var(--accent)]">_</span>PM
             </h1>
-            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
             <DateNavigator
               formattedDate={formattedDate}
               isToday={isToday}
@@ -187,12 +187,12 @@ export default function Home() {
               onOpenHistory={handleOpenHistory}
             />
           </div>
-          <div className="flex items-center gap-2 md:gap-6 flex-shrink-0">
+          <div className="flex items-center gap-6">
             <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
-            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
             <button
               onClick={handleOpenAchievements}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--warning)] hover:text-[var(--warning)] transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--warning)] hover:text-[var(--warning)] transition-all"
               title="Achievements"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +202,7 @@ export default function Home() {
             </button>
             <button
               onClick={handleOpenAnalytics}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all"
               title="Analytics"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,17 +210,41 @@ export default function Home() {
               </svg>
               ANALYTICS
             </button>
-            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
-            <div className="hidden md:flex items-center gap-3">
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <div className="flex items-center gap-3">
               <div className="w-2 h-2 bg-[var(--success)] rounded-full pulse-accent" />
               <span className="font-mono text-xs text-[var(--text-secondary)]">
                 {completedTasks}/{totalTasks} COMPLETE
               </span>
             </div>
-            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
             <ThemeToggle />
-            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
             <AuthButton />
+          </div>
+        </div>
+
+        {/* Header - Mobile */}
+        <div className="md:hidden px-4 py-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-[var(--text-primary)]">
+              VIBE<span className="text-[var(--accent)]">_</span>PM
+            </h1>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <AuthButton />
+            </div>
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-[var(--border-muted)]">
+            <DateNavigator
+              formattedDate={formattedDate}
+              isToday={isToday}
+              onPrevDay={goToPrevDay}
+              onNextDay={goToNextDay}
+              onToday={goToToday}
+              onOpenHistory={handleOpenHistory}
+            />
+            <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
           </div>
         </div>
       </header>
@@ -240,8 +264,8 @@ export default function Home() {
         <main className="flex-1 flex flex-col min-h-0 border-b md:border-b-0 md:border-r border-[var(--border-muted)]">
           {currentView === 'kanban' && (
             <>
-              <div className="px-8 py-4 border-b border-[var(--border-muted)]">
-                <div className="flex items-center justify-between">
+              <div className="px-4 md:px-8 py-3 md:py-4 border-b border-[var(--border-muted)]">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                   <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
                     PROJECT BOARD
                   </h2>
@@ -254,7 +278,7 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="flex-1 p-6 overflow-hidden">
+              <div className="flex-1 p-3 md:p-6 overflow-hidden">
                 <KanbanBoard
                   tasks={tasks}
                   onTasksChange={setTasks}
