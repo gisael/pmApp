@@ -169,15 +169,15 @@ export default function Home() {
   const completedTasks = tasks.filter(t => t.status === 'complete').length;
 
   return (
-    <div className="h-screen flex flex-col bg-[var(--bg-primary)] grid-bg">
+    <div className="h-screen h-dvh flex flex-col bg-[var(--bg-primary)] grid-bg">
       {/* Header */}
       <header className="flex-shrink-0 border-b border-[var(--border-muted)]">
-        <div className="flex items-center justify-between px-8 py-5">
-          <div className="flex items-center gap-8">
-            <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-[var(--text-primary)]">
+        <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-5 gap-2">
+          <div className="flex items-center gap-3 md:gap-8 min-w-0">
+            <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-[var(--text-primary)] flex-shrink-0">
               VIBE<span className="text-[var(--accent)]">_</span>PM
             </h1>
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
             <DateNavigator
               formattedDate={formattedDate}
               isToday={isToday}
@@ -187,39 +187,39 @@ export default function Home() {
               onOpenHistory={handleOpenHistory}
             />
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 md:gap-6 flex-shrink-0">
             <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
             <button
               onClick={handleOpenAchievements}
-              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--warning)] hover:text-[var(--warning)] transition-all"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--warning)] hover:text-[var(--warning)] transition-all"
               title="Achievements"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
-              <span className="hidden sm:inline">ACHIEVEMENTS</span>
+              ACHIEVEMENTS
             </button>
             <button
               onClick={handleOpenAnalytics}
-              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all"
               title="Analytics"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              <span className="hidden sm:inline">ANALYTICS</span>
+              ANALYTICS
             </button>
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
-            <div className="flex items-center gap-3">
+            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
+            <div className="hidden md:flex items-center gap-3">
               <div className="w-2 h-2 bg-[var(--success)] rounded-full pulse-accent" />
               <span className="font-mono text-xs text-[var(--text-secondary)]">
                 {completedTasks}/{totalTasks} COMPLETE
               </span>
             </div>
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
             <ThemeToggle />
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <div className="h-4 w-px bg-[var(--border-muted)] hidden md:block" />
             <AuthButton />
           </div>
         </div>
@@ -235,9 +235,9 @@ export default function Home() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row min-h-0">
         {/* Main Content Section */}
-        <main className="flex-1 flex flex-col min-h-0 border-r border-[var(--border-muted)]">
+        <main className="flex-1 flex flex-col min-h-0 border-b md:border-b-0 md:border-r border-[var(--border-muted)]">
           {currentView === 'kanban' && (
             <>
               <div className="px-8 py-4 border-b border-[var(--border-muted)]">
@@ -291,9 +291,9 @@ export default function Home() {
         </main>
 
         {/* Sidebar */}
-        <aside className="w-[340px] flex-shrink-0 flex flex-col min-h-0 bg-[var(--bg-surface)]">
+        <aside className="w-full md:w-[340px] flex-shrink-0 flex flex-col md:min-h-0 bg-[var(--bg-surface)] max-h-[45vh] md:max-h-none overflow-y-auto md:overflow-hidden">
           {/* Quick Notes Section (persistent across days) */}
-          <div className="flex-1 flex flex-col min-h-0 border-b border-[var(--border-muted)]">
+          <div className="min-h-[160px] md:min-h-0 md:flex-1 flex flex-col md:min-h-0 border-b border-[var(--border-muted)]">
             <div className="px-6 py-4 border-b border-[var(--border-muted)]">
               <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
                 QUICK NOTES
@@ -305,7 +305,7 @@ export default function Home() {
           </div>
 
           {/* Daily Reflection Section (per day) */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="min-h-[160px] md:min-h-0 md:flex-1 flex flex-col md:min-h-0">
             <div className="px-6 py-4 border-b border-[var(--border-muted)]">
               <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
                 DAILY REFLECTION
@@ -319,9 +319,9 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="flex-shrink-0 border-t border-[var(--border-muted)] px-8 py-3">
+      <footer className="flex-shrink-0 border-t border-[var(--border-muted)] px-4 md:px-8 py-3">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
+          <span className="hidden md:block font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
             <span className="text-[var(--text-secondary)]">N</span> NEW TASK •
             <span className="text-[var(--text-secondary)]"> /</span> SEARCH •
             <span className="text-[var(--text-secondary)]"> ?</span> SHORTCUTS

@@ -14,7 +14,7 @@ interface TaskDetailModalProps {
   onStatusChange: (id: string, status: TaskStatus) => void;
   // Create mode props
   mode?: 'edit' | 'create';
-  onCreate?: (title: string, description?: string, priority?: Priority, dueDate?: string, status?: TaskStatus, isAchievement?: boolean) => void;
+  onCreate?: (title: string, description?: string, priority?: Priority, dueDate?: string, status?: TaskStatus, isAchievement?: boolean, subtasks?: string[]) => void;
   initialStatus?: TaskStatus;
 }
 
@@ -53,6 +53,8 @@ export function TaskDetailModal({
   const [createStatus, setCreateStatus] = useState<TaskStatus>(initialStatus);
   const [createDueDate, setCreateDueDate] = useState('');
   const [isAchievement, setIsAchievement] = useState(false);
+  const [pendingSubtasks, setPendingSubtasks] = useState<string[]>([]);
+  const [newSubtaskInput, setNewSubtaskInput] = useState('');
 
   const isCreateMode = mode === 'create';
 
@@ -76,6 +78,8 @@ export function TaskDetailModal({
       setCreatePriority('medium');
       setCreateStatus(initialStatus);
       setIsAchievement(false);
+      setPendingSubtasks([]);
+      setNewSubtaskInput('');
       // Set default due date to today
       const today = new Date();
       const yyyy = today.getFullYear();
@@ -188,9 +192,23 @@ export function TaskDetailModal({
 
   const handleCreate = () => {
     if (isCreateMode && editTitle.trim() && onCreate) {
-      onCreate(editTitle.trim(), editDescription.trim() || undefined, createPriority, createDueDate || undefined, createStatus, isAchievement);
+      const subtasksToCreate = newSubtaskInput.trim()
+        ? [...pendingSubtasks, newSubtaskInput.trim()]
+        : pendingSubtasks;
+      onCreate(editTitle.trim(), editDescription.trim() || undefined, createPriority, createDueDate || undefined, createStatus, isAchievement, subtasksToCreate.length > 0 ? subtasksToCreate : undefined);
       onClose();
     }
+  };
+
+  const handleAddPendingSubtask = () => {
+    if (newSubtaskInput.trim()) {
+      setPendingSubtasks((prev) => [...prev, newSubtaskInput.trim()]);
+      setNewSubtaskInput('');
+    }
+  };
+
+  const handleRemovePendingSubtask = (index: number) => {
+    setPendingSubtasks((prev) => prev.filter((_, i) => i !== index));
   };
 
   const getDueDateInfo = () => {
@@ -342,13 +360,57 @@ export function TaskDetailModal({
           {/* Subtasks/Checklist */}
           {isCreateMode ? (
             <div>
-              <label className="block font-mono text-[10px] text-[var(--text-muted)] tracking-wider mb-2">
-                CHECKLIST
-              </label>
-              <div className="w-full bg-[var(--bg-surface)] border border-[var(--border-muted)] p-4 text-center">
-                <p className="font-mono text-xs text-[var(--text-muted)]">
-                  Create task to add checklist items
-                </p>
+              <div className="flex items-center justify-between mb-2">
+                <label className="font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
+                  CHECKLIST
+                </label>
+                {pendingSubtasks.length > 0 && (
+                  <span className="font-mono text-xs text-[var(--text-muted)]">
+                    {pendingSubtasks.length} item{pendingSubtasks.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+              <div className="border border-[var(--border-muted)] divide-y divide-[var(--border-muted)]">
+                {pendingSubtasks.map((item, index) => (
+                  <div key={index} className="flex items-center gap-3 py-2 px-3">
+                    <div className="w-4 h-4 border border-dashed border-[var(--border-muted)] flex-shrink-0" />
+                    <span className="flex-1 font-mono text-sm text-[var(--text-primary)]">{item}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePendingSubtask(index)}
+                      className="text-[var(--text-muted)] hover:text-[#ef4444] transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+                <div className="flex items-center gap-3 py-2 px-3">
+                  <div className="w-4 h-4 border border-dashed border-[var(--border-muted)] flex-shrink-0" />
+                  <input
+                    type="text"
+                    value={newSubtaskInput}
+                    onChange={(e) => setNewSubtaskInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddPendingSubtask();
+                      }
+                    }}
+                    placeholder="Add checklist item..."
+                    className="flex-1 bg-transparent font-mono text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none"
+                  />
+                  {newSubtaskInput.trim() && (
+                    <button
+                      type="button"
+                      onClick={handleAddPendingSubtask}
+                      className="font-mono text-xs text-[var(--accent)] hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      ADD
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ) : (

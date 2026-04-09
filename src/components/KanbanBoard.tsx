@@ -305,7 +305,29 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
     }
   };
 
-  const handleAddTask = (title: string, description?: string, priority: Priority = 'medium', dueDate?: string, status?: TaskStatus, isAchievement?: boolean) => {
+  const savePendingSubtasks = useCallback(async (taskId: string, subtaskTitles: string[]) => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const subtasksToInsert = subtaskTitles.map((title, index) => ({
+      id: crypto.randomUUID(),
+      task_id: taskId,
+      user_id: user.id,
+      title,
+      completed: false,
+      position: index,
+    }));
+
+    const { error } = await supabase.from('subtasks').insert(subtasksToInsert);
+    if (error) {
+      console.error('Error saving subtasks:', error);
+    } else {
+      fetchSubtaskCounts();
+    }
+  }, [fetchSubtaskCounts]);
+
+  const handleAddTask = (title: string, description?: string, priority: Priority = 'medium', dueDate?: string, status?: TaskStatus, isAchievement?: boolean, subtasks?: string[]) => {
     const targetStatus = status ?? addToColumn;
     // Shift all existing tasks in target column down
     const updatedTasks = tasks.map((t) => {
@@ -329,6 +351,10 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
     };
 
     onTasksChange([...updatedTasks, newTask]);
+
+    if (subtasks && subtasks.length > 0) {
+      savePendingSubtasks(newTask.id, subtasks);
+    }
   };
 
   const handleDeleteTask = (id: string) => {
@@ -396,7 +422,9 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
         onDelete={handleDeleteTask}
         onStatusChange={handleStatusChange}
         mode="create"
-        onCreate={handleAddTask}
+        onCreate={(title, description, priority, dueDate, status, isAchievement, subtasks) =>
+          handleAddTask(title, description, priority, dueDate, status, isAchievement, subtasks)
+        }
         initialStatus={addToColumn}
       />
       {/* Edit Task Modal */}

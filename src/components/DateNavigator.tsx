@@ -41,7 +41,7 @@ export function DateNavigator({
         </svg>
       </button>
 
-      <span className="font-mono text-xs text-[var(--text-muted)] tracking-wide min-w-[200px] text-center">
+      <span className="font-mono text-xs text-[var(--text-muted)] tracking-wide min-w-[120px] md:min-w-[200px] text-center">
         {formattedDate}
       </span>
 
@@ -79,39 +79,10 @@ export function DateNavigator({
       {/* History Button */}
       <button
         onClick={onOpenHistory}
-        className="ml-2 w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] rounded transition-colors"
+        className="ml-2 px-2 py-1 font-mono text-[10px] tracking-wider text-[var(--text-muted)] border border-[var(--border-muted)] hover:border-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
         aria-label="Browse task history"
-        title="Browse task history"
       >
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M12 8V12L15 15"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M3.05 11A9 9 0 1 1 3 12"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M3 4V11H10"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        HISTORY
       </button>
     </div>
   );
