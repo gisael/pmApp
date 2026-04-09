@@ -69,6 +69,9 @@ export default function Home() {
   // View state
   const [currentView, setCurrentView] = useState<ViewType>('kanban');
 
+  // Mobile sidebar panel
+  const [mobileSidebarPanel, setMobileSidebarPanel] = useState<'notes' | 'reflection' | null>(null);
+
   // Toast notification state
   const [copiedToastCount, setCopiedToastCount] = useState<number | null>(null);
   const [rolloverToastInfo, setRolloverToastInfo] = useState<{ rolledCount: number; expiredCount: number } | null>(null);
@@ -314,10 +317,10 @@ export default function Home() {
           )}
         </main>
 
-        {/* Sidebar */}
-        <aside className="w-full md:w-[340px] flex-shrink-0 flex flex-col md:min-h-0 bg-[var(--bg-surface)] max-h-[45vh] md:max-h-none overflow-y-auto md:overflow-hidden">
+        {/* Sidebar - Desktop only */}
+        <aside className="hidden md:flex w-[340px] flex-shrink-0 flex-col min-h-0 bg-[var(--bg-surface)]">
           {/* Quick Notes Section (persistent across days) */}
-          <div className="min-h-[160px] md:min-h-0 md:flex-1 flex flex-col md:min-h-0 border-b border-[var(--border-muted)]">
+          <div className="flex-1 flex flex-col min-h-0 border-b border-[var(--border-muted)]">
             <div className="px-6 py-4 border-b border-[var(--border-muted)]">
               <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
                 QUICK NOTES
@@ -329,7 +332,7 @@ export default function Home() {
           </div>
 
           {/* Daily Reflection Section (per day) */}
-          <div className="min-h-[160px] md:min-h-0 md:flex-1 flex flex-col md:min-h-0">
+          <div className="flex-1 flex flex-col min-h-0">
             <div className="px-6 py-4 border-b border-[var(--border-muted)]">
               <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
                 DAILY REFLECTION
@@ -342,10 +345,10 @@ export default function Home() {
         </aside>
       </div>
 
-      {/* Footer */}
-      <footer className="flex-shrink-0 border-t border-[var(--border-muted)] px-4 md:px-8 py-3">
+      {/* Footer - Desktop */}
+      <footer className="hidden md:block flex-shrink-0 border-t border-[var(--border-muted)] px-8 py-3">
         <div className="flex items-center justify-between">
-          <span className="hidden md:block font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
+          <span className="font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
             <span className="text-[var(--text-secondary)]">N</span> NEW TASK •
             <span className="text-[var(--text-secondary)]"> /</span> SEARCH •
             <span className="text-[var(--text-secondary)]"> ?</span> SHORTCUTS
@@ -355,6 +358,51 @@ export default function Home() {
           </span>
         </div>
       </footer>
+
+      {/* Mobile Bottom Bar */}
+      <div className="md:hidden flex-shrink-0 border-t border-[var(--border-muted)] bg-[var(--bg-surface)]">
+        <div className="flex">
+          <button
+            onClick={() => setMobileSidebarPanel(mobileSidebarPanel === 'notes' ? null : 'notes')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono text-[10px] tracking-wider transition-colors ${
+              mobileSidebarPanel === 'notes'
+                ? 'text-[var(--accent)] bg-[var(--accent)]/10'
+                : 'text-[var(--text-muted)]'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            NOTES
+          </button>
+          <div className="w-px bg-[var(--border-muted)]" />
+          <button
+            onClick={() => setMobileSidebarPanel(mobileSidebarPanel === 'reflection' ? null : 'reflection')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono text-[10px] tracking-wider transition-colors ${
+              mobileSidebarPanel === 'reflection'
+                ? 'text-[var(--accent)] bg-[var(--accent)]/10'
+                : 'text-[var(--text-muted)]'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            REFLECTION
+          </button>
+        </div>
+
+        {/* Slide-up panel */}
+        {mobileSidebarPanel && (
+          <div className="border-t border-[var(--border-muted)] h-[45vh] overflow-y-auto bg-[var(--bg-surface)]">
+            {mobileSidebarPanel === 'notes' && (
+              <TodoList todos={todos} onTodosChange={setTodos} />
+            )}
+            {mobileSidebarPanel === 'reflection' && (
+              <DailyReflection reflection={reflection} onReflectionChange={setReflection} />
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Shortcuts Modal */}
       <ShortcutsModal
