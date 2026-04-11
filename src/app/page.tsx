@@ -172,7 +172,7 @@ export default function Home() {
   const completedTasks = tasks.filter(t => t.status === 'complete').length;
 
   return (
-    <div className="h-screen h-dvh flex flex-col bg-[var(--bg-primary)] grid-bg">
+    <div className="h-screen h-dvh flex flex-col bg-[var(--bg-primary)] grid-bg overflow-hidden">
       {/* Header - Desktop */}
       <header className="flex-shrink-0 border-b border-[var(--border-muted)]">
         <div className="hidden md:flex items-center justify-between px-8 py-5">
