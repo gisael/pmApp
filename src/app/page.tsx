@@ -188,9 +188,6 @@ export default function Home() {
               onNextDay={goToNextDay}
               onToday={goToToday}
             />
-          </div>
-          <div className="flex items-center gap-6">
-            <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
             <div className="h-4 w-px bg-[var(--border-muted)]" />
             <button
               onClick={handleOpenHistory}
@@ -202,6 +199,10 @@ export default function Home() {
               </svg>
               HISTORY
             </button>
+          </div>
+          <div className="flex items-center gap-6">
+            <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
             <button
               onClick={handleOpenAchievements}
               className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--warning)] hover:text-[var(--warning)] transition-all"

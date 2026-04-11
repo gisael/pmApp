@@ -48,12 +48,12 @@ const views: { type: ViewType; label: string; icon: React.ReactNode }[] = [
 
 export function ViewSelector({ currentView, onViewChange }: ViewSelectorProps) {
   return (
-    <div className="flex items-center gap-1 bg-[var(--bg-surface)] border border-[var(--border-muted)] p-1">
+    <div className="flex items-center gap-0.5 md:gap-1 bg-[var(--bg-surface)] border border-[var(--border-muted)] p-0.5 md:p-1">
       {views.map((view) => (
         <button
           key={view.type}
           onClick={() => onViewChange(view.type)}
-          className={`flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider transition-all ${
+          className={`flex items-center gap-2 px-2 md:px-3 py-1.5 font-mono text-[10px] tracking-wider transition-all ${
             currentView === view.type
               ? 'bg-[var(--bg-elevated)] text-[var(--accent)] border border-[var(--accent)]/30'
               : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-transparent'
@@ -61,7 +61,7 @@ export function ViewSelector({ currentView, onViewChange }: ViewSelectorProps) {
           title={view.label}
         >
           {view.icon}
-          <span className="hidden sm:inline">{view.label}</span>
+          <span className="hidden md:inline">{view.label}</span>
         </button>
       ))}
     </div>
