@@ -71,7 +71,8 @@ export default function Home() {
 
   // Header overflow menu
   const [isOverflowMenuOpen, setIsOverflowMenuOpen] = useState(false);
-  const overflowMenuRef = useRef<HTMLDivElement>(null);
+  const overflowMenuDesktopRef = useRef<HTMLDivElement>(null);
+  const overflowMenuMobileRef = useRef<HTMLDivElement>(null);
 
   // Mobile sidebar panel
   const [mobileSidebarPanel, setMobileSidebarPanel] = useState<'notes' | 'reflection' | null>(null);
@@ -100,7 +101,10 @@ export default function Home() {
   // Close overflow menu on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (overflowMenuRef.current && !overflowMenuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const inDesktop = overflowMenuDesktopRef.current?.contains(target);
+      const inMobile = overflowMenuMobileRef.current?.contains(target);
+      if (!inDesktop && !inMobile) {
         setIsOverflowMenuOpen(false);
       }
     };
@@ -192,8 +196,8 @@ export default function Home() {
     <div className="h-screen h-dvh flex flex-col bg-[var(--bg-primary)] grid-bg overflow-hidden">
       {/* Header - Desktop */}
       <header className="flex-shrink-0 border-b border-[var(--border-muted)]">
-        <div className="hidden md:flex items-center justify-between px-4 lg:px-8 py-4 overflow-hidden">
-          <div className="flex items-center gap-3 lg:gap-8 min-w-0 flex-shrink">
+        <div className="hidden md:flex items-center justify-between px-4 lg:px-8 py-4">
+          <div className="flex items-center gap-3 lg:gap-8 min-w-0">
             <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-[var(--text-primary)]">
               VIBE<span className="text-[var(--accent)]">_</span>PM
             </h1>
@@ -205,6 +209,16 @@ export default function Home() {
               onNextDay={goToNextDay}
               onToday={goToToday}
             />
+            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <button
+              onClick={handleOpenHistory}
+              className="flex items-center gap-2 px-2 py-1.5 font-mono text-[10px] tracking-wider text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-transparent hover:border-[var(--border-muted)] transition-all"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8V12L15 15M3.05 11A9 9 0 1 1 3 12M3 4V11H10" />
+              </svg>
+              <span className="hidden lg:inline">HISTORY</span>
+            </button>
           </div>
           <div className="flex items-center gap-2 lg:gap-4 flex-shrink-0">
             <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
@@ -219,7 +233,7 @@ export default function Home() {
             <ThemeToggle />
             <div className="h-4 w-px bg-[var(--border-muted)] hidden lg:block" />
             {/* Overflow Menu */}
-            <div className="relative" ref={overflowMenuRef}>
+            <div className="relative" ref={overflowMenuDesktopRef}>
               <button
                 onClick={() => setIsOverflowMenuOpen(!isOverflowMenuOpen)}
                 className={`w-8 h-8 flex items-center justify-center border transition-all ${
@@ -237,16 +251,6 @@ export default function Home() {
               </button>
               {isOverflowMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-52 bg-[var(--bg-elevated)] border border-[var(--border-muted)] shadow-lg z-50">
-                  <button
-                    onClick={() => { handleOpenHistory(); setIsOverflowMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-wider text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors text-left"
-                  >
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8V12L15 15M3.05 11A9 9 0 1 1 3 12M3 4V11H10" />
-                    </svg>
-                    HISTORY
-                  </button>
-                  <div className="h-px bg-[var(--border-muted)]" />
                   <button
                     onClick={() => { handleOpenAchievements(); setIsOverflowMenuOpen(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-wider text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--warning)] transition-colors text-left"
@@ -266,10 +270,11 @@ export default function Home() {
                     </svg>
                     ANALYTICS
                   </button>
+                  <div className="h-px bg-[var(--border-muted)]" />
+                  <AuthButton variant="menu" onAction={() => setIsOverflowMenuOpen(false)} />
                 </div>
               )}
             </div>
-            <AuthButton />
           </div>
         </div>
 
@@ -282,7 +287,7 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <ThemeToggle />
               {/* Mobile Overflow Menu */}
-              <div className="relative" ref={overflowMenuRef}>
+              <div className="relative" ref={overflowMenuMobileRef}>
                 <button
                   onClick={() => setIsOverflowMenuOpen(!isOverflowMenuOpen)}
                   className={`w-8 h-8 flex items-center justify-center border transition-all ${
@@ -329,10 +334,11 @@ export default function Home() {
                       </svg>
                       ANALYTICS
                     </button>
+                    <div className="h-px bg-[var(--border-muted)]" />
+                    <AuthButton variant="menu" onAction={() => setIsOverflowMenuOpen(false)} />
                   </div>
                 )}
               </div>
-              <AuthButton />
             </div>
           </div>
           <div className="flex items-center justify-between pt-2 border-t border-[var(--border-muted)]">
