@@ -42,6 +42,12 @@ export function TodoList({ todos, onTodosChange }: TodoListProps) {
     onTodosChange(todos.filter((t) => t.id !== id));
   };
 
+  const handleEdit = (id: string, text: string) => {
+    onTodosChange(
+      todos.map((t) => (t.id === id ? { ...t, text } : t))
+    );
+  };
+
   const completedCount = todos.filter(t => t.completed).length;
 
   return (
@@ -79,6 +85,7 @@ export function TodoList({ todos, onTodosChange }: TodoListProps) {
                   item={todo}
                   onToggle={handleToggle}
                   onDelete={handleDelete}
+                  onEdit={handleEdit}
                 />
               </div>
             ))}
