@@ -69,6 +69,10 @@ export default function Home() {
   // View state
   const [currentView, setCurrentView] = useState<ViewType>('kanban');
 
+  // Header overflow menu
+  const [isOverflowMenuOpen, setIsOverflowMenuOpen] = useState(false);
+  const overflowMenuRef = useRef<HTMLDivElement>(null);
+
   // Mobile sidebar panel
   const [mobileSidebarPanel, setMobileSidebarPanel] = useState<'notes' | 'reflection' | null>(null);
 
@@ -92,6 +96,19 @@ export default function Home() {
   const handleShowHelp = useCallback(() => {
     setIsShortcutsOpen(true);
   }, []);
+
+  // Close overflow menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (overflowMenuRef.current && !overflowMenuRef.current.contains(e.target as Node)) {
+        setIsOverflowMenuOpen(false);
+      }
+    };
+    if (isOverflowMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOverflowMenuOpen]);
 
   useKeyboardShortcuts({
     onNewTask: handleNewTask,
@@ -175,8 +192,8 @@ export default function Home() {
     <div className="h-screen h-dvh flex flex-col bg-[var(--bg-primary)] grid-bg overflow-hidden">
       {/* Header - Desktop */}
       <header className="flex-shrink-0 border-b border-[var(--border-muted)]">
-        <div className="hidden md:flex items-center justify-between px-8 py-5">
-          <div className="flex items-center gap-8">
+        <div className="hidden md:flex items-center justify-between px-4 lg:px-8 py-4 overflow-hidden">
+          <div className="flex items-center gap-3 lg:gap-8 min-w-0 flex-shrink">
             <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-[var(--text-primary)]">
               VIBE<span className="text-[var(--accent)]">_</span>PM
             </h1>
@@ -188,51 +205,70 @@ export default function Home() {
               onNextDay={goToNextDay}
               onToday={goToToday}
             />
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
-            <button
-              onClick={handleOpenHistory}
-              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-all"
-              title="Task History"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8V12L15 15M3.05 11A9 9 0 1 1 3 12M3 4V11H10" />
-              </svg>
-              HISTORY
-            </button>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 lg:gap-4 flex-shrink-0">
             <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
-            <button
-              onClick={handleOpenAchievements}
-              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--warning)] hover:text-[var(--warning)] transition-all"
-              title="Achievements"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
-              ACHIEVEMENTS
-            </button>
-            <button
-              onClick={handleOpenAnalytics}
-              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all"
-              title="Analytics"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              ANALYTICS
-            </button>
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
-            <div className="flex items-center gap-3">
+            <div className="h-4 w-px bg-[var(--border-muted)] hidden lg:block" />
+            <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-[var(--success)] rounded-full pulse-accent" />
               <span className="font-mono text-xs text-[var(--text-secondary)]">
-                {completedTasks}/{totalTasks} COMPLETE
+                {completedTasks}/{totalTasks}
               </span>
             </div>
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <div className="h-4 w-px bg-[var(--border-muted)] hidden lg:block" />
             <ThemeToggle />
-            <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <div className="h-4 w-px bg-[var(--border-muted)] hidden lg:block" />
+            {/* Overflow Menu */}
+            <div className="relative" ref={overflowMenuRef}>
+              <button
+                onClick={() => setIsOverflowMenuOpen(!isOverflowMenuOpen)}
+                className={`w-8 h-8 flex items-center justify-center border transition-all ${
+                  isOverflowMenuOpen
+                    ? 'border-[var(--accent)] text-[var(--accent)]'
+                    : 'border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--text-secondary)] hover:text-[var(--text-secondary)]'
+                }`}
+                title="More options"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="5" r="1.5" />
+                  <circle cx="12" cy="12" r="1.5" />
+                  <circle cx="12" cy="19" r="1.5" />
+                </svg>
+              </button>
+              {isOverflowMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 bg-[var(--bg-elevated)] border border-[var(--border-muted)] shadow-lg z-50">
+                  <button
+                    onClick={() => { handleOpenHistory(); setIsOverflowMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-wider text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors text-left"
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8V12L15 15M3.05 11A9 9 0 1 1 3 12M3 4V11H10" />
+                    </svg>
+                    HISTORY
+                  </button>
+                  <div className="h-px bg-[var(--border-muted)]" />
+                  <button
+                    onClick={() => { handleOpenAchievements(); setIsOverflowMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-wider text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--warning)] transition-colors text-left"
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                    ACHIEVEMENTS
+                  </button>
+                  <div className="h-px bg-[var(--border-muted)]" />
+                  <button
+                    onClick={() => { handleOpenAnalytics(); setIsOverflowMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-wider text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--accent)] transition-colors text-left"
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    ANALYTICS
+                  </button>
+                </div>
+              )}
+            </div>
             <AuthButton />
           </div>
         </div>
@@ -245,6 +281,57 @@ export default function Home() {
             </h1>
             <div className="flex items-center gap-3">
               <ThemeToggle />
+              {/* Mobile Overflow Menu */}
+              <div className="relative" ref={overflowMenuRef}>
+                <button
+                  onClick={() => setIsOverflowMenuOpen(!isOverflowMenuOpen)}
+                  className={`w-8 h-8 flex items-center justify-center border transition-all ${
+                    isOverflowMenuOpen
+                      ? 'border-[var(--accent)] text-[var(--accent)]'
+                      : 'border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--text-secondary)] hover:text-[var(--text-secondary)]'
+                  }`}
+                  title="More options"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="5" r="1.5" />
+                    <circle cx="12" cy="12" r="1.5" />
+                    <circle cx="12" cy="19" r="1.5" />
+                  </svg>
+                </button>
+                {isOverflowMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-[var(--bg-elevated)] border border-[var(--border-muted)] shadow-lg z-50">
+                    <button
+                      onClick={() => { handleOpenHistory(); setIsOverflowMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-wider text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors text-left"
+                    >
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8V12L15 15M3.05 11A9 9 0 1 1 3 12M3 4V11H10" />
+                      </svg>
+                      HISTORY
+                    </button>
+                    <div className="h-px bg-[var(--border-muted)]" />
+                    <button
+                      onClick={() => { handleOpenAchievements(); setIsOverflowMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-wider text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--warning)] transition-colors text-left"
+                    >
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                      </svg>
+                      ACHIEVEMENTS
+                    </button>
+                    <div className="h-px bg-[var(--border-muted)]" />
+                    <button
+                      onClick={() => { handleOpenAnalytics(); setIsOverflowMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-wider text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--accent)] transition-colors text-left"
+                    >
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      ANALYTICS
+                    </button>
+                  </div>
+                )}
+              </div>
               <AuthButton />
             </div>
           </div>

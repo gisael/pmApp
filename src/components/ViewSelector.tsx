@@ -61,7 +61,7 @@ export function ViewSelector({ currentView, onViewChange }: ViewSelectorProps) {
           title={view.label}
         >
           {view.icon}
-          <span className="hidden md:inline">{view.label}</span>
+          <span className="hidden lg:inline">{view.label}</span>
         </button>
       ))}
     </div>

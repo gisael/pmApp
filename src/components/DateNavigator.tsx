@@ -39,7 +39,7 @@ export function DateNavigator({
         </svg>
       </button>
 
-      <span className="font-mono text-xs text-[var(--text-muted)] tracking-wide min-w-[120px] md:min-w-[200px] text-center">
+      <span className="font-mono text-xs text-[var(--text-muted)] tracking-wide min-w-0 w-[120px] lg:w-[200px] text-center truncate">
         {formattedDate}
       </span>
 
