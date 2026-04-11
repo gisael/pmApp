@@ -271,9 +271,9 @@ export default function Home() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col md:flex-row min-h-0">
+      <div className="flex-1 flex flex-col 2xl:flex-row min-h-0">
         {/* Main Content Section */}
-        <main className="flex-1 flex flex-col min-h-0 border-b md:border-b-0 md:border-r border-[var(--border-muted)]">
+        <main className="flex-1 flex flex-col min-h-0 2xl:border-r border-[var(--border-muted)]">
           {currentView === 'kanban' && (
             <>
               <div className="px-4 md:px-8 py-3 md:py-4 border-b border-[var(--border-muted)]">
@@ -327,7 +327,7 @@ export default function Home() {
         </main>
 
         {/* Sidebar - Desktop only */}
-        <aside className="hidden md:flex w-[340px] flex-shrink-0 flex-col min-h-0 bg-[var(--bg-surface)]">
+        <aside className="hidden 2xl:flex w-[340px] flex-shrink-0 flex-col min-h-0 bg-[var(--bg-surface)]">
           {/* Quick Notes Section (persistent across days) */}
           <div className="flex-1 flex flex-col min-h-0 border-b border-[var(--border-muted)]">
             <div className="px-6 py-4 border-b border-[var(--border-muted)]">
@@ -355,7 +355,7 @@ export default function Home() {
       </div>
 
       {/* Footer - Desktop */}
-      <footer className="hidden md:block flex-shrink-0 border-t border-[var(--border-muted)] px-8 py-3">
+      <footer className="hidden 2xl:block flex-shrink-0 border-t border-[var(--border-muted)] px-8 py-3">
         <div className="flex items-center justify-between">
           <span className="font-mono text-[10px] text-[var(--text-muted)] tracking-wider">
             <span className="text-[var(--text-secondary)]">N</span> NEW TASK •
@@ -369,7 +369,7 @@ export default function Home() {
       </footer>
 
       {/* Mobile Bottom Bar */}
-      <div className="md:hidden flex-shrink-0 border-t border-[var(--border-muted)] bg-[var(--bg-surface)]">
+      <div className="2xl:hidden flex-shrink-0 border-t border-[var(--border-muted)] bg-[var(--bg-surface)]">
         <div className="flex">
           <button
             onClick={() => setMobileSidebarPanel(mobileSidebarPanel === 'notes' ? null : 'notes')}
