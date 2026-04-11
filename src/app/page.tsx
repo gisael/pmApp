@@ -187,12 +187,21 @@ export default function Home() {
               onPrevDay={goToPrevDay}
               onNextDay={goToNextDay}
               onToday={goToToday}
-              onOpenHistory={handleOpenHistory}
             />
           </div>
           <div className="flex items-center gap-6">
             <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
             <div className="h-4 w-px bg-[var(--border-muted)]" />
+            <button
+              onClick={handleOpenHistory}
+              className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-all"
+              title="Task History"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8V12L15 15M3.05 11A9 9 0 1 1 3 12M3 4V11H10" />
+              </svg>
+              HISTORY
+            </button>
             <button
               onClick={handleOpenAchievements}
               className="flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] tracking-wider border border-[var(--border-muted)] text-[var(--text-muted)] hover:border-[var(--warning)] hover:text-[var(--warning)] transition-all"
@@ -245,7 +254,6 @@ export default function Home() {
               onPrevDay={goToPrevDay}
               onNextDay={goToNextDay}
               onToday={goToToday}
-              onOpenHistory={handleOpenHistory}
             />
             <ViewSelector currentView={currentView} onViewChange={handleViewChange} />
           </div>

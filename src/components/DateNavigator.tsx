@@ -6,7 +6,6 @@ interface DateNavigatorProps {
   onPrevDay: () => void;
   onNextDay: () => void;
   onToday: () => void;
-  onOpenHistory: () => void;
 }
 
 export function DateNavigator({
@@ -15,7 +14,6 @@ export function DateNavigator({
   onPrevDay,
   onNextDay,
   onToday,
-  onOpenHistory,
 }: DateNavigatorProps) {
   return (
     <div className="flex items-center gap-3">
@@ -76,14 +74,6 @@ export function DateNavigator({
         </button>
       )}
 
-      {/* History Button */}
-      <button
-        onClick={onOpenHistory}
-        className="ml-2 px-2 py-1 font-mono text-[10px] tracking-wider text-[var(--text-muted)] border border-[var(--border-muted)] hover:border-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
-        aria-label="Browse task history"
-      >
-        HISTORY
-      </button>
     </div>
   );
 }
