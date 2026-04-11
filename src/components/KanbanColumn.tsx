@@ -2,7 +2,7 @@
 
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Task, TaskStatus, Priority } from '@/types';
+import { Task, TaskStatus } from '@/types';
 import { KanbanCard } from './KanbanCard';
 
 interface KanbanColumnProps {
@@ -10,13 +10,10 @@ interface KanbanColumnProps {
   title: string;
   tasks: Task[];
   onDeleteTask: (id: string) => void;
-  onEditTask: (id: string, title: string, description?: string, priority?: Priority, dueDate?: string) => void;
   onTaskClick?: (task: Task) => void;
   onAddTask: () => void;
   isSortedByPriority: boolean;
   onToggleSort: () => void;
-  editingTaskId: string | null;
-  onEditingChange: (id: string | null) => void;
   subtaskCounts?: Map<string, { completed: number; total: number }>;
 }
 
@@ -31,13 +28,10 @@ export function KanbanColumn({
   title,
   tasks,
   onDeleteTask,
-  onEditTask,
   onTaskClick,
   onAddTask,
   isSortedByPriority,
   onToggleSort,
-  editingTaskId,
-  onEditingChange,
   subtaskCounts,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -114,11 +108,7 @@ export function KanbanColumn({
                 <KanbanCard
                   task={task}
                   onDelete={onDeleteTask}
-                  onEdit={onEditTask}
                   onClick={onTaskClick}
-                  isEditing={editingTaskId === task.id}
-                  isCollapsed={editingTaskId !== null && editingTaskId !== task.id}
-                  onEditingChange={onEditingChange}
                   subtaskCount={subtaskCounts?.get(task.id)}
                 />
               </div>

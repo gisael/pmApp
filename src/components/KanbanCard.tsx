@@ -3,16 +3,11 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task, Priority } from '@/types';
-import { useState } from 'react';
 
 interface KanbanCardProps {
   task: Task;
   onDelete: (id: string) => void;
-  onEdit: (id: string, title: string, description?: string, priority?: Priority, dueDate?: string) => void;
   onClick?: (task: Task) => void;
-  isEditing?: boolean;
-  isCollapsed?: boolean;
-  onEditingChange?: (id: string | null) => void;
   subtaskCount?: { completed: number; total: number };
 }
 
@@ -23,22 +18,7 @@ const priorityConfig: Record<Priority, { label: string; color: string }> = {
   urgent: { label: 'URGENT', color: '#ef4444' },
 };
 
-const priorities: Priority[] = ['low', 'medium', 'high', 'urgent'];
-
-export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externalIsEditing, isCollapsed, onEditingChange, subtaskCount }: KanbanCardProps) {
-  const [internalIsEditing, setInternalIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(task.title);
-  const [editDescription, setEditDescription] = useState(task.description || '');
-  const [editPriority, setEditPriority] = useState<Priority>(task.priority || 'medium');
-  const [editDueDate, setEditDueDate] = useState(task.dueDate || '');
-
-  // Use external editing state if provided, otherwise use internal
-  const isEditing = externalIsEditing ?? internalIsEditing;
-  const setIsEditing = (editing: boolean) => {
-    setInternalIsEditing(editing);
-    onEditingChange?.(editing ? task.id : null);
-  };
-
+export function KanbanCard({ task, onDelete, onClick, subtaskCount }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -51,27 +31,6 @@ export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externa
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  };
-
-  const handleSave = () => {
-    if (editTitle.trim()) {
-      onEdit(task.id, editTitle.trim(), editDescription.trim() || undefined, editPriority, editDueDate || undefined);
-      setIsEditing(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSave();
-    }
-    if (e.key === 'Escape') {
-      setEditTitle(task.title);
-      setEditDescription(task.description || '');
-      setEditPriority(task.priority || 'medium');
-      setEditDueDate(task.dueDate || '');
-      setIsEditing(false);
-    }
   };
 
   const timeAgo = () => {
@@ -116,133 +75,9 @@ export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externa
   const dueDateInfo = getDueDateInfo();
   const isDueToday = task.dueDate && task.workDate === task.dueDate;
 
-  // Collapsed view when another card is being edited
-  if (isCollapsed) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        {...attributes}
-        {...listeners}
-        className="card-brutal px-3 py-1.5 cursor-grab active:cursor-grabbing opacity-50"
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="font-mono text-[9px] font-semibold px-1.5 py-0.5 border flex-shrink-0"
-            style={{ borderColor: priority.color, color: priority.color }}
-          >
-            {priority.label}
-          </span>
-          <h4 className="text-sm text-[var(--text-secondary)] truncate">
-            {task.title}
-          </h4>
-        </div>
-      </div>
-    );
-  }
-
-  if (isEditing) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="bg-[var(--bg-elevated)] border border-[var(--border)] p-4"
-      >
-        <input
-          type="text"
-          value={editTitle}
-          onChange={(e) => setEditTitle(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="input-brutal w-full mb-3"
-          autoFocus
-        />
-        <textarea
-          value={editDescription}
-          onChange={(e) => setEditDescription(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Add description..."
-          className="input-brutal w-full resize-none h-20 mb-3"
-        />
-
-        {/* Priority Selector */}
-        <div className="mb-3">
-          <label className="block font-mono text-[10px] text-[var(--text-muted)] tracking-wider mb-2">
-            PRIORITY
-          </label>
-          <div className="flex gap-1">
-            {priorities.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setEditPriority(p)}
-                className={`flex-1 py-1.5 font-mono text-[10px] tracking-wider border transition-all ${
-                  editPriority === p
-                    ? 'border-[var(--border)] bg-[var(--bg-surface)]'
-                    : 'border-[var(--border-muted)] hover:border-[var(--border)]'
-                }`}
-                style={{ color: priorityConfig[p].color }}
-              >
-                {priorityConfig[p].label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Due Date */}
-        <div className="mb-3">
-          <label className="block font-mono text-[10px] text-[var(--text-muted)] tracking-wider mb-2">
-            DUE DATE
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={editDueDate}
-              onChange={(e) => setEditDueDate(e.target.value)}
-              className="input-brutal flex-1"
-            />
-            {editDueDate && (
-              <button
-                type="button"
-                onClick={() => setEditDueDate('')}
-                className="px-2 text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
-                title="Clear date"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setEditTitle(task.title);
-              setEditDescription(task.description || '');
-              setEditPriority(task.priority || 'medium');
-              setEditDueDate(task.dueDate || '');
-              setIsEditing(false);
-            }}
-            className="btn-brutal flex-1"
-          >
-            Cancel
-          </button>
-          <button onClick={handleSave} className="btn-brutal btn-brutal-accent flex-1">
-            Save
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't trigger click when clicking action buttons or when editing
     if ((e.target as HTMLElement).closest('button')) return;
-    if (!isEditing) {
-      // Click on card enables inline editing
-      setIsEditing(true);
-    }
+    onClick?.(task);
   };
 
   return (
@@ -337,32 +172,18 @@ export function KanbanCard({ task, onDelete, onEdit, onClick, isEditing: externa
             </span>
           )}
         </div>
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick?.(task);
-            }}
-            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all"
-            title="Open details"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(task.id);
-            }}
-            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-glow)] transition-all"
-            title="Delete"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(task.id);
+          }}
+          className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-glow)] transition-all opacity-0 group-hover:opacity-100"
+          title="Delete"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
       </div>
     </div>
   );

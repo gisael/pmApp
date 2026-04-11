@@ -45,7 +45,6 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [internalModalOpen, setInternalModalOpen] = useState(false);
   const [addToColumn, setAddToColumn] = useState<TaskStatus>('todo');
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [deletedTask, setDeletedTask] = useState<Task | null>(null);
   const [showUndoToast, setShowUndoToast] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -390,13 +389,10 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
               title={column.title}
               tasks={getTasksByStatus(column.status)}
               onDeleteTask={handleDeleteTask}
-              onEditTask={handleEditTask}
               onTaskClick={handleTaskClick}
               onAddTask={() => openAddModal(column.status)}
               isSortedByPriority={sortByPriority[column.status]}
               onToggleSort={() => handleToggleSort(column.status)}
-              editingTaskId={editingTaskId}
-              onEditingChange={setEditingTaskId}
               subtaskCounts={subtaskCounts}
             />
           ))}
@@ -407,7 +403,6 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
               <KanbanCard
                 task={activeTask}
                 onDelete={() => {}}
-                onEdit={() => {}}
               />
             </div>
           ) : null}
