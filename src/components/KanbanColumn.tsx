@@ -41,7 +41,7 @@ export function KanbanColumn({
   const config = statusConfig[status];
 
   return (
-    <div className="flex flex-col flex-shrink-0 w-[85vw] md:w-auto md:flex-1 md:min-w-[280px] snap-center">
+    <div className="flex flex-col flex-shrink-0 w-[85vw] md:w-0 md:flex-1 md:min-w-0 snap-center">
       {/* Column Header */}
       <div className="flex items-center gap-4 mb-4 pb-3 border-b border-[var(--border-muted)]">
         <span
@@ -91,7 +91,7 @@ export function KanbanColumn({
       {/* Drop Zone */}
       <div
         ref={setNodeRef}
-        className={`flex-1 p-3 transition-all duration-200 min-h-[200px] overflow-y-auto ${
+        className={`flex-1 p-3 transition-all duration-200 min-h-[200px] overflow-y-auto overflow-x-hidden ${
           isOver
             ? 'bg-[var(--accent-glow)] border border-[var(--accent)] border-dashed'
             : 'bg-transparent border border-transparent'
