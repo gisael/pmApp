@@ -73,7 +73,9 @@ export function KanbanCard({ task, onDelete, onClick, subtaskCount }: KanbanCard
 
   const priority = priorityConfig[task.priority] || priorityConfig.medium;
   const dueDateInfo = getDueDateInfo();
-  const isDueToday = task.dueDate && task.workDate === task.dueDate;
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isDueToday = task.dueDate === todayStr;
+  const isPastDue = !!task.dueDate && task.dueDate < todayStr;
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button')) return;
@@ -89,9 +91,8 @@ export function KanbanCard({ task, onDelete, onClick, subtaskCount }: KanbanCard
       onClick={handleCardClick}
       className={`card-brutal px-3 py-2 cursor-grab active:cursor-grabbing group ${
         isDragging ? 'opacity-50 border-[var(--accent)]' : ''
-      } ${dueDateInfo?.isOverdue ? 'border-l-2 border-l-[#ef4444]' : ''} ${
-        dueDateInfo?.isLastRollover ? 'border-l-[3px] border-l-[#ef4444]' : ''
-      } ${isDueToday && !dueDateInfo?.isOverdue ? 'ring-2 ring-[var(--warning)] ring-inset' : ''
+      } ${isPastDue ? 'border-l-[3px] border-l-[#ef4444] bg-[#ef4444]/5' : ''
+      } ${isDueToday && !isPastDue ? 'border-l-[3px] border-l-[var(--warning)] bg-[var(--warning)]/5 ring-1 ring-[var(--warning)]/30 ring-inset' : ''
       }`}
     >
       {/* Header with priority and timestamp */}
@@ -151,18 +152,16 @@ export function KanbanCard({ task, onDelete, onClick, subtaskCount }: KanbanCard
               </span>
             </div>
           )}
-          {isDueToday && !dueDateInfo?.isOverdue && (
-            <span className="font-mono text-[10px] tracking-wider text-[var(--warning)] font-semibold animate-pulse">
+          {isDueToday && (
+            <span className="font-mono text-[10px] tracking-wider text-[var(--warning)] font-semibold">
               DUE TODAY
             </span>
           )}
           {dueDateInfo && !isDueToday && (
             <span
               className={`font-mono text-[10px] tracking-wider ${
-                dueDateInfo.isLastRollover
+                isPastDue
                   ? 'text-[#ef4444] font-semibold'
-                  : dueDateInfo.isOverdue
-                  ? 'text-[#ef4444]'
                   : dueDateInfo.isDueSoon
                   ? 'text-[var(--accent)]'
                   : 'text-[var(--text-muted)]'

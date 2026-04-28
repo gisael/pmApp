@@ -5,7 +5,6 @@ import { KanbanBoard } from '@/components/KanbanBoard';
 import { TodoList } from '@/components/TodoList';
 import { DailyReflection } from '@/components/DailyReflection';
 import { DateNavigator } from '@/components/DateNavigator';
-import { StartDayModal } from '@/components/StartDayModal';
 import { HistoryPanel } from '@/components/HistoryPanel';
 import { ShortcutsModal } from '@/components/ShortcutsModal';
 import { SearchFilterBar } from '@/components/SearchFilterBar';
@@ -17,7 +16,7 @@ import { AchievementsPanel } from '@/components/AchievementsPanel';
 import { CalendarView } from '@/components/CalendarView';
 import { WeeklyPlanningView } from '@/components/WeeklyPlanningView';
 import { AgendaView } from '@/components/AgendaView';
-import { useTasks } from '@/hooks/useTasks';
+import { useTasks, rolloverTasksToToday } from '@/hooks/useTasks';
 import { useTodos } from '@/hooks/useTodos';
 import { useDailyReflection } from '@/hooks/useDailyReflection';
 import { useWorkDate } from '@/hooks/useWorkDate';
@@ -61,7 +60,6 @@ export default function Home() {
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [isStartDayModalOpen, setIsStartDayModalOpen] = useState(isNewDay);
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
   const [isAnalyticsPanelOpen, setIsAnalyticsPanelOpen] = useState(false);
   const [isAchievementsPanelOpen, setIsAchievementsPanelOpen] = useState(false);
@@ -120,20 +118,22 @@ export default function Home() {
     onShowHelp: handleShowHelp,
   });
 
-  const handleStartDayClose = useCallback(() => {
-    markDayVisited();
-    setIsStartDayModalOpen(false);
-  }, [markDayVisited]);
-
-  const handleOpenHistoryFromStartDay = useCallback(() => {
-    setIsStartDayModalOpen(false);
-    setIsHistoryPanelOpen(true);
+  // Auto-rollover incomplete tasks on new day
+  useEffect(() => {
+    if (!isNewDay) return;
+    rolloverTasksToToday().then((result) => {
+      markDayVisited();
+      refetchTasks();
+      if (result.rolledCount > 0 || result.expiredCount > 0) {
+        setRolloverToastInfo(result);
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleHistoryClose = useCallback(() => {
-    markDayVisited();
     setIsHistoryPanelOpen(false);
-  }, [markDayVisited]);
+  }, []);
 
   const handleOpenHistory = useCallback(() => {
     setIsHistoryPanelOpen(true);
@@ -160,13 +160,6 @@ export default function Home() {
   const handleTasksCopied = useCallback((count: number) => {
     refetchTasks();
     setCopiedToastCount(count);
-  }, [refetchTasks]);
-
-  const handleTasksRolledOver = useCallback((result: { rolledCount: number; expiredCount: number }) => {
-    if (result.rolledCount > 0 || result.expiredCount > 0) {
-      refetchTasks();
-      setRolloverToastInfo(result);
-    }
   }, [refetchTasks]);
 
   // Auto-hide copied toast after 3 seconds
@@ -510,16 +503,6 @@ export default function Home() {
       <ShortcutsModal
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
-      />
-
-      {/* Start Day Modal */}
-      <StartDayModal
-        isOpen={isStartDayModalOpen}
-        today={today}
-        onClose={handleStartDayClose}
-        onOpenHistory={handleOpenHistoryFromStartDay}
-        onTasksCopied={handleTasksCopied}
-        onTasksRolledOver={handleTasksRolledOver}
       />
 
       {/* History Panel */}
