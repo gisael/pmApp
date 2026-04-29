@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 
 interface AuthButtonProps {
-  variant?: 'default' | 'menu';
+  variant?: 'default' | 'menu' | 'avatar';
   onAction?: () => void;
 }
 
@@ -56,6 +56,18 @@ export function AuthButton({ variant = 'default', onAction }: AuthButtonProps = 
     onAction?.();
     await handleSignOut();
   };
+
+  if (variant === 'avatar') {
+    const initial = (user.email ?? '?')[0].toUpperCase();
+    return (
+      <div
+        title={user.email ?? ''}
+        className="w-7 h-7 flex items-center justify-center border border-[var(--accent)] bg-[var(--bg-elevated)] text-[var(--accent)] font-mono text-xs font-bold cursor-default select-none flex-shrink-0"
+      >
+        {initial}
+      </div>
+    );
+  }
 
   if (variant === 'menu') {
     return (

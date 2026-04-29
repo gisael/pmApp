@@ -225,6 +225,7 @@ export default function Home() {
             <div className="h-4 w-px bg-[var(--border-muted)] hidden lg:block" />
             <ThemeToggle />
             <div className="h-4 w-px bg-[var(--border-muted)] hidden lg:block" />
+            <AuthButton variant="avatar" />
             {/* Overflow Menu */}
             <div className="relative" ref={overflowMenuDesktopRef}>
               <button
@@ -279,6 +280,7 @@ export default function Home() {
             </h1>
             <div className="flex items-center gap-3">
               <ThemeToggle />
+              <AuthButton variant="avatar" />
               {/* Mobile Overflow Menu */}
               <div className="relative" ref={overflowMenuMobileRef}>
                 <button

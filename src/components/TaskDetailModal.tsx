@@ -55,6 +55,7 @@ export function TaskDetailModal({
   const [isAchievement, setIsAchievement] = useState(false);
   const [pendingSubtasks, setPendingSubtasks] = useState<string[]>([]);
   const [newSubtaskInput, setNewSubtaskInput] = useState('');
+  const subtaskInputRef = useRef<HTMLInputElement>(null);
 
   const isCreateMode = mode === 'create';
 
@@ -204,6 +205,7 @@ export function TaskDetailModal({
     if (newSubtaskInput.trim()) {
       setPendingSubtasks((prev) => [...prev, newSubtaskInput.trim()]);
       setNewSubtaskInput('');
+      setTimeout(() => subtaskInputRef.current?.focus(), 0);
     }
   };
 
@@ -389,6 +391,7 @@ export function TaskDetailModal({
                 <div className="flex items-center gap-3 py-2 px-3">
                   <div className="w-4 h-4 border border-dashed border-[var(--border-muted)] flex-shrink-0" />
                   <input
+                    ref={subtaskInputRef}
                     type="text"
                     value={newSubtaskInput}
                     onChange={(e) => setNewSubtaskInput(e.target.value)}

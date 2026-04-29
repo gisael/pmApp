@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef } from 'react';
+import { forwardRef, useRef } from 'react';
 import { Priority } from '@/types';
 
 interface SearchFilterBarProps {
@@ -23,6 +23,15 @@ const priorities: (Priority | 'all')[] = ['all', 'low', 'medium', 'high', 'urgen
 export const SearchFilterBar = forwardRef<HTMLInputElement, SearchFilterBarProps>(
   function SearchFilterBar({ searchQuery, onSearchChange, priorityFilter, onPriorityFilterChange }, ref) {
     const hasActiveFilters = searchQuery || priorityFilter !== 'all';
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Escape' && searchQuery) {
+        e.preventDefault();
+        onSearchChange('');
+        (e.target as HTMLInputElement).blur();
+      }
+    };
 
     return (
       <div className="flex flex-wrap items-center gap-2 md:gap-4">
@@ -42,13 +51,29 @@ export const SearchFilterBar = forwardRef<HTMLInputElement, SearchFilterBarProps
             />
           </svg>
           <input
-            ref={ref}
+            ref={(node) => {
+              inputRef.current = node;
+              if (typeof ref === 'function') ref(node);
+              else if (ref) ref.current = node;
+            }}
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Search tasks..."
-            className="input-brutal w-full !pl-10 pr-4 py-2 text-sm"
+            className="input-brutal w-full !pl-10 !pr-8 py-2 text-sm"
           />
+          {searchQuery && (
+            <button
+              onClick={() => { onSearchChange(''); inputRef.current?.focus(); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              title="Clear search"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Priority Filter */}
