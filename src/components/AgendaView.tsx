@@ -179,10 +179,10 @@ export function AgendaView({ selectedDate, onDateSelect, onTaskClick }: AgendaVi
                             <div className="flex items-center gap-3 mt-1">
                               <span
                                 className="font-mono text-[9px] font-semibold px-1.5 py-0.5 border"
-                                style={{
-                                  borderColor: priorityConfig[task.priority].color,
-                                  color: priorityConfig[task.priority].color,
-                                }}
+                                style={task.priority === 'urgent'
+                                  ? { borderColor: priorityConfig[task.priority].color, backgroundColor: priorityConfig[task.priority].color, color: '#fff' }
+                                  : { borderColor: priorityConfig[task.priority].color, color: priorityConfig[task.priority].color }
+                                }
                               >
                                 {priorityConfig[task.priority].label}
                               </span>

@@ -348,7 +348,10 @@ function AchievementCard({ achievement }: { achievement: Task }) {
         </div>
         <span
           className="font-mono text-[9px] font-semibold px-1.5 py-0.5 border flex-shrink-0"
-          style={{ borderColor: priority.color, color: priority.color }}
+          style={achievement.priority === 'urgent'
+            ? { borderColor: priority.color, backgroundColor: priority.color, color: '#fff' }
+            : { borderColor: priority.color, color: priority.color }
+          }
         >
           {priority.label}
         </span>

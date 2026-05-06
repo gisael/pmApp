@@ -82,6 +82,7 @@ export default function Home() {
   // Search and filter
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all');
+  const [sidebarSplit, setSidebarSplit] = useState(50);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleNewTask = useCallback(() => {
@@ -416,11 +417,11 @@ export default function Home() {
 
         {/* Sidebar - Desktop only */}
         <aside className="hidden 2xl:flex w-[340px] flex-shrink-0 flex-col min-h-0 bg-[var(--bg-surface)]">
-          {/* Quick Notes Section (persistent across days) */}
-          <div className="flex-1 flex flex-col min-h-0 border-b border-[var(--border-muted)]">
+          {/* Sticky Notes Section (persistent across days) */}
+          <div className="flex flex-col min-h-[100px] overflow-hidden" style={{ flex: `0 0 ${sidebarSplit}%` }}>
             <div className="px-6 py-4 border-b border-[var(--border-muted)]">
               <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
-                QUICK NOTES
+                STICKY NOTES
               </h2>
             </div>
             <div className="flex-1 overflow-hidden">
@@ -428,8 +429,33 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Drag Handle */}
+          <div
+            className="flex-shrink-0 h-2 cursor-row-resize border-y border-[var(--border-muted)] bg-[var(--bg-surface)] hover:bg-[var(--accent)]/10 transition-colors group flex items-center justify-center"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              const sidebar = e.currentTarget.parentElement!;
+              const startY = e.clientY;
+              const startSplit = sidebarSplit;
+              const totalHeight = sidebar.clientHeight;
+              const onMove = (ev: MouseEvent) => {
+                const delta = ev.clientY - startY;
+                const newSplit = Math.min(80, Math.max(20, startSplit + (delta / totalHeight) * 100));
+                setSidebarSplit(newSplit);
+              };
+              const onUp = () => {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+              };
+              document.addEventListener('mousemove', onMove);
+              document.addEventListener('mouseup', onUp);
+            }}
+          >
+            <div className="w-8 h-0.5 rounded-full bg-[var(--text-muted)] opacity-40 group-hover:opacity-80 transition-opacity" />
+          </div>
+
           {/* Daily Reflection Section (per day) */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-[100px] overflow-hidden">
             <div className="px-6 py-4 border-b border-[var(--border-muted)]">
               <h2 className="font-mono text-xs font-semibold tracking-[0.15em] text-[var(--text-secondary)]">
                 DAILY REFLECTION
@@ -470,7 +496,7 @@ export default function Home() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            NOTES
+            STICKY NOTES
           </button>
           <div className="w-px bg-[var(--border-muted)]" />
           <button

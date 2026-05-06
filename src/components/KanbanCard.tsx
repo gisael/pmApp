@@ -100,7 +100,10 @@ export function KanbanCard({ task, onDelete, onClick, subtaskCount }: KanbanCard
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span
             className="font-mono text-[9px] font-semibold px-1.5 py-0.5 border flex-shrink-0"
-            style={{ borderColor: priority.color, color: priority.color }}
+            style={task.priority === 'urgent'
+              ? { borderColor: priority.color, backgroundColor: priority.color, color: '#fff' }
+              : { borderColor: priority.color, color: priority.color }
+            }
           >
             {priority.label}
           </span>

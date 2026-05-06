@@ -128,10 +128,12 @@ export function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalProps) {
                     onClick={() => setPriority(p)}
                     className={`flex-1 py-2 font-mono text-[10px] tracking-wider border transition-all ${
                       priority === p
-                        ? 'border-[var(--border)] bg-[var(--bg-surface)]'
+                        ? p === 'urgent'
+                          ? 'border-[#ef4444] bg-[#ef4444] text-white'
+                          : 'border-[var(--border)] bg-[var(--bg-surface)]'
                         : 'border-[var(--border-muted)] hover:border-[var(--border)]'
                     }`}
-                    style={{ color: priorityConfig[p].color }}
+                    style={priority === p && p === 'urgent' ? {} : { color: priorityConfig[p].color }}
                   >
                     {priorityConfig[p].label}
                   </button>

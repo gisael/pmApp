@@ -87,10 +87,12 @@ export const SearchFilterBar = forwardRef<HTMLInputElement, SearchFilterBarProps
               onClick={() => onPriorityFilterChange(p)}
               className={`px-2 py-1 font-mono text-[9px] tracking-wider border transition-all ${
                 priorityFilter === p
-                  ? 'border-[var(--border)] bg-[var(--bg-surface)]'
+                  ? p === 'urgent'
+                    ? 'border-[#ef4444] bg-[#ef4444] text-white'
+                    : 'border-[var(--border)] bg-[var(--bg-surface)]'
                   : 'border-[var(--border-muted)] hover:border-[var(--border)]'
               }`}
-              style={{ color: priorityConfig[p].color }}
+              style={priorityFilter === p && p === 'urgent' ? {} : { color: priorityConfig[p].color }}
             >
               {priorityConfig[p].label}
             </button>

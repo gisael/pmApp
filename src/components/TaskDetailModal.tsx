@@ -257,7 +257,10 @@ export function TaskDetailModal({
               <>
                 <span
                   className="font-mono text-[10px] font-semibold px-2 py-1 border"
-                  style={{ borderColor: priority.color, color: priority.color }}
+                  style={currentPriority === 'urgent'
+                    ? { borderColor: priority.color, backgroundColor: priority.color, color: '#fff' }
+                    : { borderColor: priority.color, color: priority.color }
+                  }
                 >
                   {priority.label}
                 </span>
@@ -465,10 +468,12 @@ export function TaskDetailModal({
                     onClick={() => handlePriorityChange(p)}
                     className={`flex-1 py-2 font-mono text-[10px] tracking-wider border transition-all ${
                       currentPriority === p
-                        ? 'border-[var(--border)] bg-[var(--bg-surface)]'
+                        ? p === 'urgent'
+                          ? 'border-[#ef4444] bg-[#ef4444] text-white'
+                          : 'border-[var(--border)] bg-[var(--bg-surface)]'
                         : 'border-[var(--border-muted)] hover:border-[var(--border)]'
                     }`}
-                    style={{ color: priorityConfig[p].color }}
+                    style={currentPriority === p && p === 'urgent' ? {} : { color: priorityConfig[p].color }}
                   >
                     {priorityConfig[p].label}
                   </button>

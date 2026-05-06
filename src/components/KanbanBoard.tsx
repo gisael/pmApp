@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -54,14 +54,21 @@ export function KanbanBoard({ tasks, onTasksChange, isAddModalOpen, onAddModalOp
   const isModalOpen = isAddModalOpen ?? internalModalOpen;
   const setIsModalOpen = onAddModalOpenChange ?? setInternalModalOpen;
 
+  const openedFromColumnRef = useRef(false);
+
   // Reset to 'todo' (backlog) when modal opens via external control (e.g., 'n' shortcut)
   useEffect(() => {
     if (isAddModalOpen) {
-      setAddToColumn('todo');
+      if (openedFromColumnRef.current) {
+        openedFromColumnRef.current = false;
+      } else {
+        setAddToColumn('todo');
+      }
     }
   }, [isAddModalOpen]);
 
   const openAddModal = (status: TaskStatus = 'todo') => {
+    openedFromColumnRef.current = true;
     setAddToColumn(status);
     setIsModalOpen(true);
   };
